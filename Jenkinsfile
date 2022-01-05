@@ -4,7 +4,7 @@ pipeline {
     stage('Build') {
       steps {
         git(url: 'https://github.com/Mine-Quest/Payload.git', branch: 'main', credentialsId: 'Iv1.88498de6720734a8')
-        sh 'mvn clean install'
+        sh 'mvn -Pupstream clean install'
       }
     }
 
