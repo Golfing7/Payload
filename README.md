@@ -1,4 +1,4 @@
-# Payload [![Actions Status](https://github.com/jonahseguin/Payload/workflows/Java%20CI/badge.svg)](https://github.com/jonahseguin/Payload/actions)
+# Payload
 *Fail-safe asynchronous profile caching via Redis &amp; MongoDB in Java for Spigot*
 
 ## About
@@ -29,6 +29,7 @@ To install with maven, clone the repository to your local machine first.  And th
 
 Once that has finished, you can add Payload to the dependencies in your project:
 ```xml
+
 <dependency>
             <groupId>com.jonahseguin</groupId>
             <artifactId>Payload</artifactId>

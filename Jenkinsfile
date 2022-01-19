@@ -10,7 +10,7 @@ pipeline {
 
     stage('Archive') {
       steps {
-        archiveArtifacts(artifacts: 'target/Payload-3.1.0.jar', onlyIfSuccessful: true)
+        archiveArtifacts(artifacts: 'target/Payload.jar', onlyIfSuccessful: true)
       }
     }
 
