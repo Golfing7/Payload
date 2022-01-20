@@ -16,7 +16,7 @@ pipeline {
 
     stage('Nexus Publish') {
       steps {
-       nexusPublisher nexusInstanceId: '1', nexusRepositoryId: 'maven-releases', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: '/var/lib/jenkins/workspace/Mine_Quest_Prisons_Payload_main/target/Payload.jar']], mavenCoordinate: [artifactId: 'Payload', groupId: 'com.jonahseguin', packaging: 'jar', version: '3.1.0']]]
+       nexusPublisher nexusInstanceId: '1', nexusRepositoryId: 'maven-releases', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: '/var/lib/jenkins/workspace/MQ_Payload_main/target/Payload.jar']], mavenCoordinate: [artifactId: 'Payload', groupId: 'com.jonahseguin', packaging: 'jar', version: '3.1.0']]]
       }
     }
   }
