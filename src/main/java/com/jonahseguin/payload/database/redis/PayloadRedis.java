@@ -18,6 +18,7 @@ public class PayloadRedis {
     private final String password;
     private final boolean ssl;
     private final String uri;
+    private final int database;
 
     public static PayloadRedis fromConfig(ConfigurationSection section) {
         String address = section.getString("address");
@@ -29,6 +30,8 @@ public class PayloadRedis {
         String password = authSection.getString("password");
         boolean ssl = authSection.getBoolean("ssl", false);
 
+        int database = section.getInt("database", 0);
+
         String uri = section.getString("uri", null); // Default uri to null
         // The connection URI, if provided, will completely overwrite all other properties.
 
@@ -38,7 +41,7 @@ public class PayloadRedis {
             }
         }
 
-        return new PayloadRedis(address, port, auth, password, ssl, uri);
+        return new PayloadRedis(address, port, auth, password, ssl, uri, database);
     }
 
     public RedisURI getRedisURI() {
@@ -49,7 +52,8 @@ public class PayloadRedis {
             RedisURI.Builder builder = RedisURI.builder()
                     .withHost(address)
                     .withPort(port)
-                    .withSsl(ssl);
+                    .withSsl(ssl)
+                    .withDatabase(database);
             if (auth) {
                 builder.withPassword(password);
             }

@@ -23,6 +23,7 @@ import com.jonahseguin.payload.database.redis.PayloadRedisMonitor;
 import com.jonahseguin.payload.server.ServerService;
 import com.mongodb.*;
 import com.mongodb.client.MongoDatabase;
+import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;

@@ -31,11 +31,12 @@ redis:
   # For Redis, you can either provide credentials, or just provide the Redis connection URI via the 'uri' field below
 
   # Redis URI Format: ' redis://[USER]:[PASSWORD]@[CLUSTER-PUBLIC-IP]:[PORT] '
-  uri: 'redis://thisshouldntbeneeded@10.8.1.1:6379' # ***If you provide a uri field, it will override all other parameters in this section below!***
+  uri: 'redis://thisshouldntbeneeded@10.8.1.1:6379/0' # ***If you provide a uri field, it will override all other parameters in this section below!***
 
   # Or, provide the information below instead of the uri field:
   address: '10.8.1.1' # IP Address to your redis server
   port: 6379 # This is the default Redis port
+  database: 0
 
   # If using authentication (recommended) **only if NOT using URI field**
   auth:
