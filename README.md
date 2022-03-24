@@ -1,6 +1,8 @@
 # Payload
 *Fail-safe asynchronous profile caching via Redis &amp; MongoDB in Java for Spigot. Created originally by jonahseguin who is now a big Hypixel developer man... Updated to 1.17 & & Java  16 by Savag3life*
 
+Yes, this is a very long readme - GitHub wants us to pay like $160 USD a year to have a wiki on a private repo :kekw:
+
 ## Payload Types
 Payload offers two types of Payloads. `PayloadObject` & `PayloadProfile`. Both types require 2 parts - A "Data Object" which is used as an in-memory interface with the backing database. It also requires a loader/manager class to maintain to reference the database itself.
 
@@ -159,3 +161,52 @@ public class PrisonPlayerRetrieval {
     }
 }
 ```
+
+### Parent / Manager Class
+Payload uses Guice for dependency injection. By doing this is also requires additional setup in your main plugin / main class. In most of our use cases, there will be a parent setup in the core plugin for the realm we are working in. If not, you'll need to add one.
+
+## Creating a Payload Module
+```java
+public class MyModule extends JavaPlugin {
+
+    @Getter private PayloadModule databaseModule; // This will be OUR module
+    @Getter private Injector injector; // The Guice injector instance - You'll need this for nothing except Payload.
+    
+    @Override
+    public void onEnable() {
+        super.onEnable();
+        // Ask Payload to create a new extension module for us - The name must be unique.
+        this.databaseModule = PayloadAPI.install(this, "prisons");
+        // Create an extension Guice Injector
+        // This is the Injector passed to constructors of our Payload Objects/Profiles to create them 
+        // at runtime. This allows us to inject our own dependencies into the Payload objects.
+        this.injector = Guice.createInjector(this.databaseModule);
+    }
+}
+```
+Make sure you also add Payload to your dependencies in your plugin.yml - If not it will be very mad at you when it goes to load your plugin.
+
+### Setup & Databases
+For MineQuest / Buzz - We run in a multi-node private network environment. This mean all our databases are run on a central MongoDB cluster. You will almost always use the following credentials to connect to mongo and redis.
+```yaml
+mongodb:
+  uri: null
+  address: '10.8.1.1'
+  port: 27017 
+  database: 'prisons' 
+  auth:
+    enabled: false
+    authDatabase: 'admin'
+    username: 'username'
+    password: 'password'
+
+redis:
+  uri: 'redis://thisshouldntbeneeded@minequest.jamo.tech:6379/1'
+  address: ''
+  port: 1
+  auth:
+    ssl: false
+    enabled: false
+    password: '''
+```
+Keep in mind, in a multi-server environment, with each server having its own set of collections & databases you'll need to have each Redis cache use a unique database number. To do this, you simply append a `/1` to the end of your redis URI. Redis has upto 16 (base0) unique databases, so you can use `/1` through `/15` to use different databases. A non-spefiied database will default to `/0`. 
