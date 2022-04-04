@@ -6,17 +6,20 @@
 package com.jonahseguin.payload.mode.object.store;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.type.PayloadQueryModifier;
 import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.mode.object.PayloadObjectCache;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import dev.morphia.query.Query;
+import org.bson.Document;
+import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -126,7 +129,67 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
     @Override
     public long clear() {
         // For safety reasons...
-        throw new UnsupportedOperationException("Cannot clear a MongoDB database from within Payload.");
+        if(!PayloadPlugin.DEVELOPMENT_MODE)
+            throw new UnsupportedOperationException("Not supported when not in development mode!");
+
+        try {
+            MongoDatabase database = cache.getDatabase().getMongoClient().getDatabase(cache.getDatabase().getName());
+
+            MongoCollection<Document> collection = database.getCollection(cache.getEntityName());
+
+            long l = collection.countDocuments();
+
+            collection.deleteMany(new Document());
+
+            return l;
+        } catch (MongoException ex) {
+            getCache().getErrorService().capture(ex, "MongoDB error removing Object from MongoDB Layer (Removing All)");
+        } catch (Exception expected) {
+            getCache().getErrorService().capture(expected, "Error removing Object from MongoDB Layer (Removing All)");
+        }
+        return -1;
+    }
+
+    @Override
+    public long deleteInvalids() {
+        if(cache.getIdentifierFieldName().isEmpty())
+            return 0;
+
+        try {
+            MongoDatabase database = cache.getDatabase().getMongoClient().getDatabase(cache.getDatabase().getName());
+
+            MongoCollection<Document> collection = database.getCollection(cache.getEntityName());
+
+            List<Document> found = Lists.newArrayList();
+
+            for(Document document : collection.find()){
+                found.add(document);
+            }
+
+            long removed = 0L;
+
+            for(Document document : found){
+                String identifier = document.getString(cache.getIdentifierFieldName());
+
+                if(identifier == null)
+                    continue;
+
+                try{
+                    Query<X> q = getQuery(identifier);
+                    q.find().toList();
+                }catch(Throwable thr){
+                    collection.deleteOne(document);
+                    removed++;
+                }
+            }
+
+            return removed;
+        } catch (MongoException ex) {
+            getCache().getErrorService().capture(ex, "MongoDB error removing Object from MongoDB Layer (Removing Invalids)");
+        } catch (Exception expected) {
+            getCache().getErrorService().capture(expected, "Error removing Object from MongoDB Layer (Removing Invalids)");
+        }
+        return 0;
     }
 
     @Override

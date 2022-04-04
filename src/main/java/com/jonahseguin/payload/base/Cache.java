@@ -49,9 +49,13 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
 
     void delete(@Nonnull X payload);
 
+    void deleteAll();
+
     boolean isCached(@Nonnull K key);
 
     void cacheAll();
+
+    long deleteInvalidCaches();
 
     @Nonnull
     Collection<X> getAll();

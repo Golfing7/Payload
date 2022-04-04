@@ -82,6 +82,12 @@ public class ObjectStoreLocal<X extends PayloadObject> extends ObjectCacheStore<
     }
 
     @Override
+    public long deleteInvalids() {
+        //We're local, we know to make it here it HAD to be valid.
+        return 0;
+    }
+
+    @Override
     public boolean start() {
         running = true;
         return true;

@@ -100,6 +100,12 @@ public class ProfileStoreLocal<X extends PayloadProfile> extends ProfileCacheSto
         return i;
     }
 
+    @Override
+    public long deleteInvalids() {
+        //We're local, we know to make it here it HAD to be valid.
+        return 0;
+    }
+
     @Nonnull
     @Override
     public Collection<X> getAll() {

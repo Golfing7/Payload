@@ -6,11 +6,17 @@
 package com.jonahseguin.payload.mode.profile.store;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.type.PayloadQueryModifier;
 import com.jonahseguin.payload.mode.profile.PayloadProfile;
 import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import dev.morphia.query.Query;
+import org.bson.Document;
+import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -136,7 +142,66 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
     @Override
     public long clear() {
         // For safety reasons...
-        throw new UnsupportedOperationException("Cannot clear a MongoDB database from within Payload.");
+        if(!PayloadPlugin.DEVELOPMENT_MODE)
+            throw new UnsupportedOperationException("Not supported when not in development mode!");
+
+        try {
+            MongoDatabase database = cache.getDatabase().getMongoClient().getDatabase(cache.getDatabase().getName());
+
+            MongoCollection<?> collection = database.getCollection(cache.getEntityName());
+
+            long l = collection.countDocuments();
+
+            collection.deleteMany(new Document());
+
+            return l;
+        } catch (MongoException ex) {
+            getCache().getErrorService().capture(ex, "MongoDB error removing Profile from MongoDB Layer (Removing All)");
+        } catch (Exception expected) {
+            getCache().getErrorService().capture(expected, "Error removing Profile from MongoDB Layer (Removing All)");
+        }
+        return -1;
+    }
+
+    @Override
+    public long deleteInvalids() {
+        try {
+            MongoDatabase database = cache.getDatabase().getMongoClient().getDatabase(cache.getDatabase().getName());
+
+            MongoCollection<Document> collection = database.getCollection(cache.getEntityName());
+
+            List<Document> found = Lists.newArrayList();
+
+            for(Document document : collection.find()){
+                found.add(document);
+            }
+
+            long removed = 0L;
+
+            for(Document document : found){
+                String identifier = document.getString("uniqueId");
+
+                if(identifier == null)
+                    continue;
+
+                UUID uuid = UUID.fromString(identifier);
+
+                try{
+                    Query<X> q = getQuery(uuid);
+                    q.find().toList();
+                }catch(Throwable thr){
+                    collection.deleteOne(document);
+                    removed++;
+                }
+            }
+
+            return removed;
+        } catch (MongoException ex) {
+            getCache().getErrorService().capture(ex, "MongoDB error removing Object from MongoDB Layer (Removing Invalids)");
+        } catch (Exception expected) {
+            getCache().getErrorService().capture(expected, "Error removing Object from MongoDB Layer (Removing Invalids)");
+        }
+        return 0;
     }
 
     @Override

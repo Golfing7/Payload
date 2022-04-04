@@ -32,6 +32,8 @@ import java.io.IOException;
 @Getter
 public class PayloadPlugin extends JavaPlugin {
 
+    public static final boolean DEVELOPMENT_MODE = true;
+
     private final PayloadAPI api = new PayloadAPI(this);
     private static PayloadPlugin plugin = null;
     private Injector injector = null;

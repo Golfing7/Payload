@@ -20,14 +20,20 @@ import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.update.PayloadUpdater;
 import com.jonahseguin.payload.database.DatabaseService;
+import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.server.ServerService;
+import dev.morphia.annotations.Entity;
+import dev.morphia.mapping.MappingException;
+import dev.morphia.query.ValidationException;
 import lombok.Getter;
+import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -59,6 +65,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     protected boolean debug = true;
     protected PayloadMode mode = PayloadMode.STANDALONE;
     protected boolean running = false;
+    protected String entityName;
 
     public PayloadCache(Injector injector, PayloadInstantiator<K, X> instantiator, String name, Class<K> key, Class<X> payload) {
         this.injector = injector;
@@ -66,6 +73,17 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
         this.name = name;
         this.keyClass = key;
         this.payloadClass = payload;
+
+        this.resolveEntityName();
+    }
+
+    private void resolveEntityName(){
+        Entity annotation = this.payloadClass.getAnnotation(Entity.class);
+        if(annotation != null){
+            this.entityName = annotation.value();
+        }else{
+            this.entityName = this.payloadClass.getSimpleName();
+        }
     }
 
     protected void setupModule() {

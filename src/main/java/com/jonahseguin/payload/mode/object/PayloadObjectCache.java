@@ -15,8 +15,10 @@ import com.jonahseguin.payload.mode.object.settings.ObjectCacheSettings;
 import com.jonahseguin.payload.mode.object.store.ObjectStoreLocal;
 import com.jonahseguin.payload.mode.object.store.ObjectStoreMongo;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,10 +35,26 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
     private final ConcurrentMap<String, PayloadObjectController<X>> controllers = new ConcurrentHashMap<>();
     private final ObjectStoreLocal<X> localStore = new ObjectStoreLocal<>(this);
     private final ObjectStoreMongo<X> mongoStore = new ObjectStoreMongo<>(this);
+    protected String identifierFieldName;
 
     public PayloadObjectCache(Injector injector, PayloadInstantiator<String, X> instantiator, String name, Class<X> payload) {
         super(injector, instantiator, name, String.class, payload);
         setupModule();
+
+        this.findIDFieldName();
+    }
+
+    private void findIDFieldName(){
+        try{
+            PayloadObject object = payloadClass.getConstructor().newInstance();
+
+            identifierFieldName = object.identifierFieldName();
+        }catch (InvocationTargetException | InstantiationException | NoSuchMethodException | IllegalAccessException e) {
+            Bukkit.getLogger().warning("Unable to find identifier field name for object cache: " + name + "!");
+            e.printStackTrace();
+
+            identifierFieldName = "";
+        }
     }
 
     @Override
@@ -110,6 +128,17 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
     @Override
     public String keyFromString(@Nonnull String key) {
         return key;
+    }
+
+    @Override
+    public void deleteAll() {
+        getLocalStore().clear();
+        getDatabaseStore().clear();
+    }
+
+    @Override
+    public long deleteInvalidCaches() {
+        return getDatabaseStore().deleteInvalids();
     }
 
     @Override

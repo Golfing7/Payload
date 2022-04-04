@@ -33,6 +33,8 @@ public interface PayloadStore<K, X extends Payload> extends Service {
 
     long clear();
 
+    long deleteInvalids();
+
     @Nonnull
     String layerName();
 

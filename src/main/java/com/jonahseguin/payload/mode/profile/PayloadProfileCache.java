@@ -15,6 +15,7 @@ import com.jonahseguin.payload.base.PayloadCallback;
 import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.uuid.UUIDService;
+import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.mode.profile.handshake.ProfileHandshakeService;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.network.NetworkService;
@@ -24,7 +25,9 @@ import com.jonahseguin.payload.mode.profile.store.ProfileStoreLocal;
 import com.jonahseguin.payload.mode.profile.store.ProfileStoreMongo;
 import com.jonahseguin.payload.mode.profile.update.ProfileUpdater;
 import com.jonahseguin.payload.server.PayloadServer;
+import dev.morphia.mapping.MappingException;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -220,6 +223,12 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         getDatabaseStore().remove(payload);
     }
 
+    @Override
+    public void deleteAll() {
+        getLocalStore().clear();
+        getDatabaseStore().clear();
+    }
+
     @Nonnull
     @Override
     public Collection<X> getCached() {
@@ -364,6 +373,11 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     @Override
     public void cacheAll() {
         this.getAll().forEach(this::cache);
+    }
+
+    @Override
+    public long deleteInvalidCaches() {
+        return getDatabaseStore().deleteInvalids();
     }
 
     @Override
