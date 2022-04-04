@@ -8,6 +8,7 @@ package com.jonahseguin.payload.mode.object;
 import com.google.common.base.Preconditions;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
@@ -46,14 +47,14 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
 
     private void findIDFieldName(){
         try{
-            PayloadObject object = payloadClass.getConstructor().newInstance();
+            PayloadObject object = payloadClass.getConstructor(ObjectCache.class).newInstance(this);
 
             identifierFieldName = object.identifierFieldName();
         }catch (InvocationTargetException | InstantiationException | NoSuchMethodException | IllegalAccessException e) {
             Bukkit.getLogger().warning("Unable to find identifier field name for object cache: " + name + "!");
             e.printStackTrace();
 
-            identifierFieldName = "";
+            identifierFieldName = "identifier";
         }
     }
 

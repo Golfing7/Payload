@@ -169,6 +169,9 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
             long removed = 0L;
 
             for(Document document : found){
+                if(!document.containsKey(cache.getIdentifierFieldName()))
+                    continue;
+
                 String identifier = document.getString(cache.getIdentifierFieldName());
 
                 if(identifier == null)
