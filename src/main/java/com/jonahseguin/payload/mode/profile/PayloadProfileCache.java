@@ -217,13 +217,6 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     }
 
     @Override
-    public void delete(@Nonnull X payload) {
-        Preconditions.checkNotNull(payload);
-        getLocalStore().remove(payload);
-        getDatabaseStore().remove(payload);
-    }
-
-    @Override
     public void deleteAll() {
         getLocalStore().clear();
         getDatabaseStore().clear();
@@ -366,6 +359,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     @Override
     public void delete(@Nonnull UUID key) {
         Preconditions.checkNotNull(key);
+        controllers.remove(key);
         localStore.remove(key);
         mongoStore.remove(key);
     }

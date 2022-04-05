@@ -9,4 +9,8 @@ public interface PayloadController<X extends Payload> {
 
     void uncache(@Nonnull X payload, boolean switchingServers);
 
+    /**
+     * Makes this controller "forget" its payload. This will ensure that dead payloads don't remain.
+     */
+    void forget();
 }

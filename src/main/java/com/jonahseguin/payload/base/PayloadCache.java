@@ -353,6 +353,9 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     @Override
     public void delete(@Nonnull K key) {
         Preconditions.checkNotNull(key);
+
+        controller(key).forget();
+
         getLocalStore().remove(key);
         getDatabaseStore().remove(key);
     }
@@ -360,6 +363,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     @Override
     public void delete(@Nonnull X payload) {
         Preconditions.checkNotNull(payload);
+        controller(payload.getIdentifier()).forget();
         getLocalStore().remove(payload);
         getDatabaseStore().remove(payload);
     }

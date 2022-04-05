@@ -97,6 +97,11 @@ public class PayloadObjectController<X extends PayloadObject> implements Payload
     }
 
     @Override
+    public void forget() {
+        this.payload = null;
+    }
+
+    @Override
     public void uncache(@Nonnull X payload, boolean switchingServers) {
         if (cache.isCached(payload.getIdentifier())) {
             cache.uncache(payload);

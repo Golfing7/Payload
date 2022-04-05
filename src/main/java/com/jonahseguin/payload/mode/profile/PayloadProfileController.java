@@ -299,6 +299,11 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         }
     }
 
+    @Override
+    public void forget() {
+        reset();
+    }
+
     private void handshake(@Nonnull PayloadServer targetServer) {
         cache.getHandshakeService().handshake(this, targetServer);
         while (!handshakeComplete && ((System.currentTimeMillis() - handshakeRequestStartTime) / 1000) < cache.getSettings().getHandshakeTimeoutSeconds()) {
