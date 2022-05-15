@@ -9,6 +9,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.Stage;
+import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.base.PayloadPermission;
 import com.jonahseguin.payload.base.lang.PLangService;
 import com.jonahseguin.payload.command.PCommandHandler;
@@ -122,6 +123,16 @@ public class PayloadPlugin extends JavaPlugin {
     public void onDisable() {
         lang.load();
         lang.save();
+
+        int saved = 0;
+        for(PayloadCache cache : PayloadCache.getAllCaches()){
+            if(cache.isRunning()){
+                cache.saveAll();
+                saved++;
+            }
+        }
+
+        this.getLogger().info(PayloadPlugin.format("Payload saved {0} caches on disable.", saved));
         this.getLogger().info(PayloadPlugin.format("Payload v{0} by Jonah Seguin disabled.", getDescription().getVersion()));
         plugin = null;
     }

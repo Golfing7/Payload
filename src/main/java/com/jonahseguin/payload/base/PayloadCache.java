@@ -46,6 +46,10 @@ import java.util.concurrent.Executors;
 @Getter
 @Singleton
 public abstract class PayloadCache<K, X extends Payload<K>> implements Comparable<PayloadCache>, Cache<K, X> {
+    private static final Set<PayloadCache> ALL_CACHES = new HashSet<>();
+    public static Set<PayloadCache> getAllCaches(){
+        return ALL_CACHES;
+    }
 
     protected final PayloadAutoSaveTask<K, X> autoSaveTask = new PayloadAutoSaveTask<>(this);
     protected final Set<String> dependingCaches = new HashSet<>();
@@ -73,6 +77,8 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
         this.name = name;
         this.keyClass = key;
         this.payloadClass = payload;
+
+        ALL_CACHES.add(this);
 
         this.resolveEntityName();
     }
