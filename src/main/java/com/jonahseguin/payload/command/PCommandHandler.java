@@ -40,6 +40,7 @@ public class PCommandHandler implements CommandExecutor {
         this.lang = lang;
         register(injector.getInstance(CmdHelp.class));
         register(injector.getInstance(CmdCache.class));
+        register(injector.getInstance(CmdCacheDelete.class));
         register(injector.getInstance(CmdCacheList.class));
         register(injector.getInstance(CmdCacheStores.class));
         register(injector.getInstance(CmdDebug.class));
