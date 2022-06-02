@@ -9,23 +9,22 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.jonahseguin.payload.PayloadAPI;
 import com.jonahseguin.payload.base.Cache;
+import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.base.PayloadPermission;
 import com.jonahseguin.payload.command.CmdArgs;
 import com.jonahseguin.payload.command.PayloadCommand;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class CmdCacheDelete implements PayloadCommand {
+public class CmdCacheDeleteAll implements PayloadCommand {
 
     private final PayloadAPI api;
     private final Map<String, String> verificationMap;
 
     @Inject
-    public CmdCacheDelete(PayloadAPI api) {
+    public CmdCacheDeleteAll(PayloadAPI api) {
         this.api = api;
 
         this.verificationMap = Maps.newHashMap();
@@ -33,16 +32,9 @@ public class CmdCacheDelete implements PayloadCommand {
 
     @Override
     public void execute(CmdArgs args) {
-        String cacheName = args.getArgs()[0];
-        Cache cache = api.getCache(cacheName);
-        if (cache == null) {
-            args.msg("&cA cache with the name '{0}' does not exist.  Type /payload caches for a list of caches.", cacheName);
-            return;
-        }
+        String builtSenderID = (args.isPlayer() ? args.getPlayer().getUniqueId().toString() : "CONSOLE");
 
-        String builtSenderID = (args.isPlayer() ? args.getPlayer().getUniqueId().toString() : "CONSOLE") + "_" + cache.getName();
-
-        if(args.length() == 2 && verificationMap.containsKey(builtSenderID)){
+        if(args.length() == 1 && verificationMap.containsKey(builtSenderID)){
             String verificationCode = args.arg(0);
 
             String goodCode = verificationMap.remove(builtSenderID);
@@ -52,11 +44,15 @@ public class CmdCacheDelete implements PayloadCommand {
                 return;
             }
 
-            long deleted = cache.getAll().size();
+            long deleted = 0;
 
-            cache.deleteAll();
+            for(Cache<?, ?> cache : PayloadCache.getAllCaches()){
+                deleted += cache.getAll().size();
 
-            args.msg("&aDeleted &e{0} &accaches from &e{1} &astore!", deleted, cache.getName());
+                cache.deleteAll();
+            }
+
+            args.msg("&aDeleted &e{0} &accaches!", deleted);
         }
 
         StringBuilder randomStringBuilder = new StringBuilder();
@@ -69,7 +65,7 @@ public class CmdCacheDelete implements PayloadCommand {
 
         Bukkit.getScheduler().runTaskLater(api.getPlugin(), () -> verificationMap.remove(builtSenderID, randomStringBuilder.toString()), 100);
 
-        args.msg("&cType &a\"/payload deletecache {0} {1}\" &cto delete the cache.", cache.getName(), randomStringBuilder.toString());
+        args.msg("&cType &a\"/payload deletecache {0}\" &cto delete all caches.", randomStringBuilder.toString());
     }
 
     @Override
