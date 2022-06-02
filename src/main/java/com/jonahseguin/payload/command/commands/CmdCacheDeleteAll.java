@@ -70,17 +70,17 @@ public class CmdCacheDeleteAll implements PayloadCommand {
 
     @Override
     public String name() {
-        return "deletecache";
+        return "deleteall";
     }
 
     @Override
     public String[] aliases() {
-        return new String[]{"dc", "dcache"};
+        return new String[0];
     }
 
     @Override
     public String desc() {
-        return "Deletes all cached things in a cache.";
+        return "Deletes all caches.";
     }
 
     @Override
@@ -90,7 +90,7 @@ public class CmdCacheDeleteAll implements PayloadCommand {
 
     @Override
     public String usage() {
-        return "<cache name>";
+        return "";
     }
 
     @Override
@@ -100,6 +100,6 @@ public class CmdCacheDeleteAll implements PayloadCommand {
 
     @Override
     public int minArgs() {
-        return 1;
+        return 0;
     }
 }
