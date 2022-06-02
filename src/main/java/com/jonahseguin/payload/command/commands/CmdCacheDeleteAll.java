@@ -58,7 +58,7 @@ public class CmdCacheDeleteAll implements PayloadCommand {
         StringBuilder randomStringBuilder = new StringBuilder();
 
         for (int i = 0; i < 6; i++) {
-            randomStringBuilder.append('a' + ThreadLocalRandom.current().nextInt(25));
+            randomStringBuilder.append((char) ('a' + ThreadLocalRandom.current().nextInt(25)));
         }
 
         verificationMap.put(builtSenderID, randomStringBuilder.toString());
