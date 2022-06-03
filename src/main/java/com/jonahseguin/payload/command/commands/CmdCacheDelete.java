@@ -67,7 +67,7 @@ public class CmdCacheDelete implements PayloadCommand {
 
         verificationMap.put(builtSenderID, randomStringBuilder.toString());
 
-        Bukkit.getScheduler().runTaskLater(api.getPlugin(), () -> verificationMap.remove(builtSenderID, randomStringBuilder.toString()), 100);
+        Bukkit.getScheduler().runTaskLater(api.getPlugin(), () -> verificationMap.remove(builtSenderID, randomStringBuilder.toString()), 200);
 
         args.msg("&cType &a\"/payload deletecache {0} {1}\" &cto delete the cache.", cache.getName(), randomStringBuilder.toString());
     }

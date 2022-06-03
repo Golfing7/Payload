@@ -63,7 +63,7 @@ public class CmdCacheDeleteAll implements PayloadCommand {
 
         verificationMap.put(builtSenderID, randomStringBuilder.toString());
 
-        Bukkit.getScheduler().runTaskLater(api.getPlugin(), () -> verificationMap.remove(builtSenderID, randomStringBuilder.toString()), 100);
+        Bukkit.getScheduler().runTaskLater(api.getPlugin(), () -> verificationMap.remove(builtSenderID, randomStringBuilder.toString()), 200);
 
         args.msg("&cType &a\"/payload deleteall {0}\" &cto delete all caches.", randomStringBuilder.toString());
     }
