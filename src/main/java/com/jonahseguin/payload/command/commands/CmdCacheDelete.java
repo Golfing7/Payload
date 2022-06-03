@@ -43,7 +43,7 @@ public class CmdCacheDelete implements PayloadCommand {
         String builtSenderID = (args.isPlayer() ? args.getPlayer().getUniqueId().toString() : "CONSOLE") + "_" + cache.getName();
 
         if(args.length() == 2 && verificationMap.containsKey(builtSenderID)){
-            String verificationCode = args.arg(0);
+            String verificationCode = args.arg(1);
 
             String goodCode = verificationMap.remove(builtSenderID);
 
