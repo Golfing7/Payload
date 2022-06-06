@@ -52,7 +52,8 @@ public class CmdCacheDeleteAll implements PayloadCommand {
                 cache.deleteAll();
             }
 
-            args.msg("&aDeleted &e{0} &accaches!", deleted);
+            args.msg("&aDeleted &e{0} &acaches!", deleted);
+            return;
         }
 
         StringBuilder randomStringBuilder = new StringBuilder();

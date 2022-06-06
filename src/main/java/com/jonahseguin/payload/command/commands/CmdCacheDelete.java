@@ -56,7 +56,8 @@ public class CmdCacheDelete implements PayloadCommand {
 
             cache.deleteAll();
 
-            args.msg("&aDeleted &e{0} &accaches from &e{1} &astore!", deleted, cache.getName());
+            args.msg("&aDeleted &e{0} &acaches from &e{1} &astore!", deleted, cache.getName());
+            return;
         }
 
         StringBuilder randomStringBuilder = new StringBuilder();
