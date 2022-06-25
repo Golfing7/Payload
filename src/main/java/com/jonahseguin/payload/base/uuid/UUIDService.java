@@ -8,6 +8,7 @@ package com.jonahseguin.payload.base.uuid;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.jonahseguin.payload.PayloadPlugin;
@@ -21,7 +22,7 @@ import java.util.UUID;
 public class UUIDService {
 
     private final PayloadPlugin payloadPlugin;
-    private final BiMap<UUID, String> cache = HashBiMap.create();
+    private final BiMap<UUID, String> cache = Maps.synchronizedBiMap(HashBiMap.create());
 
     @Inject
     public UUIDService(@Nonnull PayloadPlugin payloadPlugin) {
@@ -32,7 +33,8 @@ public class UUIDService {
     public void save(@Nonnull UUID uuid, @Nonnull String name) {
         Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(name);
-        cache.put(uuid, name.toLowerCase());
+        //Use force put in case we've already cached it and are simply updating.
+        cache.forcePut(uuid, name.toLowerCase());
     }
 
     public Optional<UUID> get(@Nonnull String name) {
