@@ -293,6 +293,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     protected final void updatePayloadFromNewer(@Nonnull X payload, @Nonnull X update) {
         Preconditions.checkNotNull(payload);
         Preconditions.checkNotNull(update);
+        Bukkit.getLogger().info(String.format("Updating fields on payload in cache %s with ID %s", name, payload.getIdentifier()));
         database.getDatastore().getMapper().getMappedClass(payload.getClass()).getPersistenceFields().forEach(mf -> {
             mf.setFieldValue(payload, mf.getFieldValue(update));
         });
