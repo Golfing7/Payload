@@ -6,6 +6,8 @@
 package com.jonahseguin.payload.mode.object;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.jonahseguin.payload.PayloadPlugin;
@@ -22,6 +24,7 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -150,11 +153,16 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
     @Nonnull
     @Override
     public Set<X> getAll() {
-        final Set<X> all = new HashSet<>(localStore.getAll());
+        //Store the values from their key to themselves.
+        Map<String, X> values = Maps.newHashMap();
+
+        localStore.getAll().forEach(value -> values.put(value.getIdentifier(), value));
         if (settings.isUseMongo()) {
-            all.addAll(mongoStore.getAll().stream().filter(x -> all.stream().noneMatch(x2 -> x.getObjectId().equals(x2.getObjectId()))).collect(Collectors.toSet()));
+            mongoStore.getAll().forEach(value -> {
+                values.putIfAbsent(value.getIdentifier(), value);
+            });
         }
-        return all;
+        return Sets.newHashSet(values.values());
     }
 
     @Override
