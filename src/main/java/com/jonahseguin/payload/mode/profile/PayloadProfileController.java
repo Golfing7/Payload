@@ -11,19 +11,24 @@ import com.jonahseguin.payload.base.lang.PLang;
 import com.jonahseguin.payload.base.type.PayloadController;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.server.PayloadServer;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 @Setter
 public class PayloadProfileController<X extends PayloadProfile> implements PayloadController<X> {
 
+    //Used so we don't get race conditions.
+    private final ReentrantLock payloadLock = new ReentrantLock();
     private final PayloadProfileCache<X> cache;
     private final UUID uuid;
     private String username = null;
@@ -48,6 +53,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
     }
 
     public void reset() {
+        payloadLock.lock();
         denyJoin = false;
         payload = null;
         failure = false;
@@ -55,6 +61,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         handshakeComplete = false;
         handshakeRequestStartTime = 0L;
         handshakeTimedOut = false;
+        payloadLock.unlock();
     }
 
     public void login(@Nonnull String username, @Nonnull String loginIp) {
@@ -65,6 +72,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
     
     @Override
     public Optional<X> cache() {
+        payloadLock.lock();
         reset();
 
         if (uuid != null && username != null) {
@@ -76,15 +84,21 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
             if (!cache.getDatabase().getState().canCacheFunction(cache)) {
                 denyJoin = true;
                 joinDenyReason = cache.getLang().format(PLang.JOIN_DENY_DATABASE, cache.getName());
+                payloadLock.unlock();
                 return Optional.empty();
             }
         }
 
         if (cache.getMode().equals(PayloadMode.STANDALONE)) {
-            return cacheStandalone();
+            Optional<X> toReturn = cacheStandalone();
+            payloadLock.unlock();
+            return toReturn;
         } else if (cache.getMode().equals(PayloadMode.NETWORK_NODE)) {
-            return cacheNetworkNode();
+            Optional<X> toReturn = cacheNetworkNode();
+            payloadLock.unlock();
+            return toReturn;
         } else {
+            payloadLock.unlock();
             throw new UnsupportedOperationException("Unknown cache mode: " + cache.getMode().toString());
         }
     }
@@ -287,6 +301,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
     }
 
     public void initializeOnJoin(Player player) {
+        payloadLock.lock();
         this.player = player;
         if (payload == null) {
             payload = cache.getFromCache(player).orElse(null);
@@ -297,6 +312,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         } else {
             cache.getErrorService().debug("failed to call initializeOnJoin() for " + player.getName() + " (payload is null in controller)");
         }
+        payloadLock.unlock();
     }
 
     @Override
