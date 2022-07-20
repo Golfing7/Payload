@@ -169,8 +169,13 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
     public int saveAll() {
         AtomicInteger failures = new AtomicInteger();
         for (X object : localStore.getAll()) {
-            if (!save(object)) {
-                failures.getAndIncrement();
+            try{
+                if (!save(object)) {
+                    failures.getAndIncrement();
+                }
+            }catch(Throwable exc){
+                Bukkit.getLogger().info(String.format("[%s] - Encountered an error while saving cache %s!", payloadPlugin.getName(), object.getIdentifier()));
+                exc.printStackTrace();
             }
         }
         return failures.get();

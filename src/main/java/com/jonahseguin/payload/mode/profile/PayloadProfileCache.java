@@ -456,8 +456,14 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
             if (o.isPresent()) {
                 X payload = o.get();
                 payload.interact();
-                if (!this.save(payload)) {
-                    failures++;
+
+                try{
+                    if (!this.save(payload)) {
+                        failures++;
+                    }
+                }catch(Throwable exc){
+                    Bukkit.getLogger().info(String.format("[%s] - Encountered an error while saving cache %s!", payloadPlugin.getName(), payload.getIdentifier()));
+                    exc.printStackTrace();
                 }
             } else {
                 failures++;
