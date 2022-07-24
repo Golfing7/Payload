@@ -427,6 +427,11 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
      */
     @Override
     public void runAsync(@Nonnull Runnable runnable) {
+        if(!api.getPlugin().isEnabled()){
+            Bukkit.getLogger().warning("[%s] - Tried to run async runnable but plugin is disabled! (Most likely harmless)");
+            return;
+        }
+
         Preconditions.checkNotNull(runnable);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
     }
