@@ -100,6 +100,8 @@ public class PayloadPlugin extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(injector.getInstance(ProfileListener.class), this);
         this.getCommand("payload").setExecutor(this.commandHandler);
         this.getLogger().info(PayloadPlugin.format("Payload v{0} by Jonah Seguin enabled.", getDescription().getVersion()));
+
+        saveDefaultConfig();
     }
 
     /**

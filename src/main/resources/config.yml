@@ -1,0 +1,3 @@
+#Ignores these caches when using deleteall
+deleteall-ignore-caches:
+  - 'some-cache-1'

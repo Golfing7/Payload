@@ -15,6 +15,7 @@ import com.jonahseguin.payload.mode.profile.PayloadProfileController;
 import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileLogoutEvent;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileSwitchServersEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -38,6 +39,10 @@ public class ProfileListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onProfileCachingStart(AsyncPlayerPreLoginEvent event) {
+        //It's possible the plugin receives this event while the server is "disabling". If the server IS turning off, we don't need to call this event.
+        if(!api.getPlugin().isEnabled())
+            return;
+
         final String username = event.getName();
         final UUID uniqueId = event.getUniqueId();
         final String ip = event.getAddress().getHostAddress();

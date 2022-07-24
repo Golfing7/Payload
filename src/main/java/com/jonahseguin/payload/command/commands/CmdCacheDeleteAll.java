@@ -15,6 +15,7 @@ import com.jonahseguin.payload.command.CmdArgs;
 import com.jonahseguin.payload.command.PayloadCommand;
 import org.bukkit.Bukkit;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -46,7 +47,12 @@ public class CmdCacheDeleteAll implements PayloadCommand {
 
             long deleted = 0;
 
+            List<String> toIgnore = api.getPlugin().getConfig().getStringList("deleteall-ignore-caches");
+
             for(Cache<?, ?> cache : PayloadCache.getAllCaches()){
+                if(toIgnore.contains(cache.getName()))
+                    continue;
+
                 deleted += cache.getAll().size();
 
                 cache.deleteAll();
