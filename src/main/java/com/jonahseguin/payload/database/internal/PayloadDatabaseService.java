@@ -9,7 +9,6 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.annotation.Database;
 import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.database.DatabaseDependent;
@@ -45,7 +44,9 @@ public class PayloadDatabaseService implements DatabaseService {
         this.name = name;
         this.error = error;
         this.morphia = new Morphia();
-        this.morphia.getMapper().setOptions(MapperOptions.builder().classLoader(JavaPlugin.getProvidingPlugin(this.getClass()).getClass().getClassLoader()).build());
+        this.morphia.getMapper().setOptions(MapperOptions.builder()
+                .storeEmpties(true)
+                .classLoader(JavaPlugin.getProvidingPlugin(this.getClass()).getClass().getClassLoader()).build());
         this.database = database;
 
         new GuiceExtension(morphia, injector);
