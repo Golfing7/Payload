@@ -8,12 +8,27 @@ package com.jonahseguin.payload.server;
 import com.google.common.base.Preconditions;
 import org.bson.Document;
 
+import java.util.UUID;
+
 public class ServerPublisher {
 
     private final PayloadServerService payloadServerService;
 
     public ServerPublisher(PayloadServerService serverService) {
         this.payloadServerService = serverService;
+    }
+
+    public void publishPlayerEvent(UUID playerUUID, boolean mustBeOnline, Document data) {
+        data.put("uuid", playerUUID);
+        data.put("mustBeOnline", mustBeOnline);
+        this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
+            try {
+                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.PLAYER_EVENT.getEvent(), data.toJson());
+            } catch (Exception ex) {
+                payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing PLAYER_EVENT event");
+            }
+        });
+
     }
 
     public void publishPing() {

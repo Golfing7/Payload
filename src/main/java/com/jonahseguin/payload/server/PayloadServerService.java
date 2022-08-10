@@ -13,15 +13,17 @@ import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.annotation.Database;
 import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.database.DatabaseService;
+import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import lombok.Getter;
 import org.bson.Document;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -77,14 +79,13 @@ public class PayloadServerService implements Runnable, ServerService {
             StatefulRedisPubSubConnection<String, String> connection = database.getRedisPubSub();
             reactive = connection.reactive();
 
-            reactive.subscribe("payload-server-join", "payload-server-ping", "payload-server-quit", "payload-server-update-name").subscribe();
+            List<String> eventList = Arrays.stream(ServerEvent.values())
+                    .map(ServerEvent::getEvent).toList();
+            reactive.subscribe(eventList.toArray(String[]::new)).subscribe();
 
             reactive.observeChannels()
                     .filter(pm -> !pm.getMessage().equalsIgnoreCase(database.getServerService().getThisServer().getName()))
-                    .filter(pm -> pm.getChannel().equalsIgnoreCase("payload-server-join") ||
-                            pm.getChannel().equalsIgnoreCase("payload-server-ping") ||
-                            pm.getChannel().equalsIgnoreCase("payload-server-quit") ||
-                            pm.getChannel().equalsIgnoreCase("payload-server-update-name"))
+                    .filter(pm -> eventList.stream().anyMatch(channel -> channel.equalsIgnoreCase(pm.getChannel())))
                     .doOnNext(patternMessage -> {
                         ServerEvent event = ServerEvent.fromChannel(patternMessage.getChannel());
                         if (event != null) {
@@ -99,6 +100,9 @@ public class PayloadServerService implements Runnable, ServerService {
                                 String oldName = data.getString("old");
                                 String newName = data.getString("new");
                                 handleUpdateName(oldName, newName);
+                            } else if (event.equals(ServerEvent.PLAYER_EVENT)) {
+                                Document data = Document.parse(patternMessage.getMessage());
+                                handlePlayerEvent(data);
                             }
                         }
                     }).subscribe();
@@ -108,6 +112,21 @@ public class PayloadServerService implements Runnable, ServerService {
             database.getErrorService().capture(ex, "Error subscribing in Payload Server Service");
             return false;
         }
+    }
+
+    private void handlePlayerEvent(Document data) {
+        UUID uuid = UUID.fromString(data.getString("uuid"));
+        boolean mustBeOnline = data.getBoolean("mustBeOnline", true);
+        Player player = Bukkit.getPlayer(uuid);
+        if (mustBeOnline && player == null) {
+            return;
+        }
+
+        data.remove("uuid");
+        data.remove("mustBeOnline");
+
+        PayloadPlayerEvent payloadPlayerEvent = new PayloadPlayerEvent(uuid, mustBeOnline, player, data);
+        Bukkit.getPluginManager().callEvent(payloadPlayerEvent);
     }
 
     @Override
@@ -173,7 +192,9 @@ public class PayloadServerService implements Runnable, ServerService {
                 this.pingTask.cancel();
             }
             if (reactive != null) {
-                reactive.unsubscribe("payload-server-join", "payload-server-ping", "payload-server-quit", "payload-server-update-name");
+                List<String> eventList = Arrays.stream(ServerEvent.values())
+                        .map(ServerEvent::getEvent).toList();
+                reactive.unsubscribe(eventList.toArray(String[]::new));
             }
 
             this.publisher.publishQuit(); // Sync.

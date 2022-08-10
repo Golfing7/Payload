@@ -10,7 +10,8 @@ public enum ServerEvent {
     JOIN("payload-server-join"),
     PING("payload-server-ping"),
     QUIT("payload-server-quit"),
-    UPDATE_NAME("payload-server-update-name");
+    UPDATE_NAME("payload-server-update-name"),
+    PLAYER_EVENT("payload-player-event");
 
     private final String event;
 
