@@ -15,7 +15,6 @@ import com.jonahseguin.payload.base.PayloadCallback;
 import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.uuid.UUIDService;
-import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.mode.profile.handshake.ProfileHandshakeService;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.network.NetworkService;
@@ -25,16 +24,13 @@ import com.jonahseguin.payload.mode.profile.store.ProfileStoreLocal;
 import com.jonahseguin.payload.mode.profile.store.ProfileStoreMongo;
 import com.jonahseguin.payload.mode.profile.update.ProfileUpdater;
 import com.jonahseguin.payload.server.PayloadServer;
-import dev.morphia.mapping.MappingException;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +44,8 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     private final ConcurrentMap<UUID, PayloadProfileController<X>> controllers = new ConcurrentHashMap<>();
     private final ProfileStoreLocal<X> localStore = new ProfileStoreLocal<>(this);
     private final ProfileStoreMongo<X> mongoStore = new ProfileStoreMongo<>(this);
-    @Inject private UUIDService uuidService;
+    @Inject
+    private UUIDService uuidService;
     private NetworkService<X> networkService = null;
     private ProfileHandshakeService<X> handshakeService = null;
     private ProfileUpdater<X> profileUpdater = null;
@@ -300,6 +297,15 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
                 .collect(Collectors.toSet());
     }
 
+    @NotNull
+    @Override
+    public Collection<X> getOnlineInstances() {
+        return this.networkService.getOnline().stream()
+                .map(networkProfile -> this.get(networkProfile.getUuidID()).orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     @Override
     public boolean isCached(@Nonnull UUID key) {
         Preconditions.checkNotNull(key);
@@ -457,11 +463,11 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
                 X payload = o.get();
                 payload.interact();
 
-                try{
+                try {
                     if (!this.save(payload)) {
                         failures++;
                     }
-                }catch(Throwable exc){
+                } catch (Throwable exc) {
                     Bukkit.getLogger().info(String.format("[%s] - Encountered an error while saving cache %s!", payloadPlugin.getName(), payload.getIdentifier()));
                     exc.printStackTrace();
                 }

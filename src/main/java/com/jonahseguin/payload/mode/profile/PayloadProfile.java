@@ -9,15 +9,19 @@ import com.google.inject.Inject;
 import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.mode.profile.util.MsgBuilder;
+import com.jonahseguin.payload.server.ServerPublisher;
+import com.jonahseguin.payload.server.ServerService;
 import dev.morphia.annotations.*;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.apache.commons.lang3.Validate;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -34,9 +38,12 @@ public abstract class PayloadProfile implements Payload<UUID> {
 
     protected transient final ProfileCache cache;
 
-    @Id protected ObjectId objectId = new ObjectId();
-    @Indexed protected String username;
-    @Indexed protected String uniqueId;
+    @Id
+    protected ObjectId objectId = new ObjectId();
+    @Indexed
+    protected String username;
+    @Indexed
+    protected String uniqueId;
     protected String loginIp = null; // IP the profile logged in with
     protected String payloadId; // The ID of the Payload instance that currently holds this profile
     protected transient UUID uuid = null;
@@ -101,13 +108,13 @@ public abstract class PayloadProfile implements Payload<UUID> {
         return this.uuid;
     }
 
-    public UUID getUniqueId() {
-        return this.getUUID();
-    }
-
     public void setUUID(UUID uuid) {
         this.uuid = uuid;
         this.uniqueId = uuid.toString();
+    }
+
+    public UUID getUniqueId() {
+        return this.getUUID();
     }
 
     public void setUniqueId(UUID uuid) {
@@ -158,9 +165,37 @@ public abstract class PayloadProfile implements Payload<UUID> {
     }
 
     public void sendMessage(String msg) {
-        if (this.isInitialized()) {
-            this.player.sendMessage(msg);
+        Player player = getPlayer();
+        if (player != null) {
+            player.sendMessage(msg);
+            return;
         }
+
+        Document data = new Document();
+        data.put("action", "MESSAGE_PLAYER");
+        data.put("message", msg);
+        data.put("isComponent", false);
+
+        ServerService serverService = this.getCache().getDatabase().getServerService();
+        ServerPublisher publisher = serverService.getPublisher();
+        publisher.publishPlayerEvent(getUUID(), true, data);
+    }
+
+    public void sendMessage(Component component) {
+        Player player = getPlayer();
+        if (player != null) {
+            player.sendMessage(component);
+            return;
+        }
+
+        Document data = new Document();
+        data.put("action", "MESSAGE_PLAYER");
+        data.put("message", GsonComponentSerializer.gson().serialize(component));
+        data.put("isComponent", false);
+
+        ServerService serverService = this.getCache().getDatabase().getServerService();
+        ServerPublisher publisher = serverService.getPublisher();
+        publisher.publishPlayerEvent(getUUID(), true, data);
     }
 
     public boolean isInitialized() {
@@ -182,32 +217,36 @@ public abstract class PayloadProfile implements Payload<UUID> {
         return this.getUsername();
     }
 
+    @Deprecated
     public void msg(String msg) {
-        if (player != null && player.isOnline()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
-        }
+        this.sendMessage(msg);
     }
 
+    @Deprecated
     public void msg(String msg, Object... args) {
         this.msg(PayloadPlugin.format(msg, args));
     }
 
+    @Deprecated
     public void msg(BaseComponent component) {
         if (player != null && player.isOnline()) {
             player.spigot().sendMessage(component);
         }
     }
 
+    @Deprecated
     public void msg(BaseComponent[] components) {
         if (player != null && player.isOnline()) {
             player.spigot().sendMessage(components);
         }
     }
 
+    @Deprecated
     public void msgBuilder(String msg, MsgBuilder builder) {
         this.msg(builder.build(new ComponentBuilder(msg)));
     }
 
+    @Deprecated
     public ComponentBuilder msgBuilder(String msg) {
         return new ComponentBuilder(msg);
     }

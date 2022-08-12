@@ -12,8 +12,7 @@ import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.mongodb.BasicDBObject;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class RedisNetworkService<X extends PayloadProfile> implements NetworkService<X> {
 
@@ -50,6 +49,21 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
             cache.getErrorService().capture(ex, "Error getting network payload from Key in Redis Network Service");
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Collection<NetworkProfile> getOnline() {
+        final String hashKey = cache.getServerSpecificName();
+        Map<String, String> onlinePlayers = database.getRedis().sync().hgetall(hashKey);
+        Collection<NetworkProfile> onlinePlayerSet = new HashSet<>();
+        onlinePlayers.forEach((uuid, json) -> {
+            if (json != null && json.length() > 0) {
+                BasicDBObject dbObject = BasicDBObject.parse(json);
+                NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
+                onlinePlayerSet.add(networkProfile);
+            }
+        });
+        return onlinePlayerSet;
     }
 
     @Override

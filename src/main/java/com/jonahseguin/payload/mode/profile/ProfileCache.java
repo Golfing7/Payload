@@ -42,6 +42,9 @@ public interface ProfileCache<X extends PayloadProfile> extends Cache<UUID, X> {
     @Nonnull
     Collection<X> getOnline();
 
+    @Nonnull
+    Collection<X> getOnlineInstances();
+
     boolean isCached(@Nonnull String username);
 
     boolean isCached(@Nonnull Player player);

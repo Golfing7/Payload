@@ -15,7 +15,10 @@ import com.jonahseguin.payload.mode.profile.PayloadProfileController;
 import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileLogoutEvent;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileSwitchServersEvent;
-import org.bukkit.Bukkit;
+import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.bson.Document;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,10 +40,36 @@ public class ProfileListener implements Listener {
         this.api = api;
     }
 
+    @EventHandler
+    public void onPlayer(PayloadPlayerEvent event) {
+        Document data = event.getData();
+        if (data == null || !data.getString("action").equalsIgnoreCase("MESSAGE_PLAYER")) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (player == null) {
+            return;
+        }
+
+        String rawMessage = data.getString("message");
+        if (rawMessage == null) {
+            return;
+        }
+
+        if (data.getBoolean("isComponent", false)) {
+            Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
+            player.sendMessage(component);
+            return;
+        }
+
+        player.sendMessage(rawMessage);
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void onProfileCachingStart(AsyncPlayerPreLoginEvent event) {
         //It's possible the plugin receives this event while the server is "disabling". If the server IS turning off, we don't need to call this event.
-        if(!api.getPlugin().isEnabled())
+        if (!api.getPlugin().isEnabled())
             return;
 
         final String username = event.getName();

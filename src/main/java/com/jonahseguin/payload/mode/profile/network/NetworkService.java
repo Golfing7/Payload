@@ -9,12 +9,15 @@ import com.jonahseguin.payload.base.Service;
 import com.jonahseguin.payload.mode.profile.PayloadProfile;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface NetworkService<X extends PayloadProfile> extends Service {
 
     Optional<NetworkProfile> get(@Nonnull UUID key);
+
+    Collection<NetworkProfile> getOnline();
 
     Optional<NetworkProfile> get(@Nonnull X payload);
 
