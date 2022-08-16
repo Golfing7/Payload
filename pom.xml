@@ -28,7 +28,7 @@
     </pluginRepositories>
 
     <build>
-        <defaultGoal>clean package</defaultGoal>
+        <defaultGoal>clean package install</defaultGoal>
         <directory>target</directory>
         <outputDirectory>target/classes</outputDirectory>
         <sourceDirectory>${basedir}/src/main/java</sourceDirectory>

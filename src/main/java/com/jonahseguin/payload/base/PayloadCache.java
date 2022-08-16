@@ -67,7 +67,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     protected ErrorService errorService;
     protected PayloadInstantiator<K, X> instantiator;
     protected boolean debug = true;
-    protected PayloadMode mode = PayloadMode.STANDALONE;
+    protected PayloadMode mode = PayloadMode.NETWORK_NODE;
     protected boolean running = false;
     protected String entityName;
 
