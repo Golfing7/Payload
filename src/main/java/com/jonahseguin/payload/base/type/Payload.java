@@ -80,4 +80,9 @@ public interface Payload<K> {
 
     void onReceiveUpdate();
 
+    /**
+     * Called when a server wants to handshake on this item.
+     */
+    default void onHandshakeRequest(){}
+
 }

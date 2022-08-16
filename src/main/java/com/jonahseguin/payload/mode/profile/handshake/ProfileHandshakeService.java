@@ -112,6 +112,7 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         cache.runAsync(() -> {
             if (player != null && player.isOnline()) {
                 cache.getFromCache(player).ifPresent(profile -> {
+                    profile.onHandshakeRequest();
                     profile.setHandshakeStartTimestamp(System.currentTimeMillis());
                     cache.save(profile);
                 });
