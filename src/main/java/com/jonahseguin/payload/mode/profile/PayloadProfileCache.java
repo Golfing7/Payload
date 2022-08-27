@@ -301,7 +301,19 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     @Override
     public Collection<X> getOnlineInstances() {
         return this.networkService.getOnline().stream()
-                .map(networkProfile -> this.get(networkProfile.getUuidID()).orElse(null))
+                .map(networkProfile -> {
+                    try {
+                        UUID identifier = networkProfile.getIdentifier();
+                        if (identifier == null) {
+                            return null;
+                        }
+
+                        Optional<X> optional = this.get(identifier);
+                        return optional.orElse(null);
+                    } catch (Exception ignore) {
+                        return null;
+                    }
+                })
                 .filter(Objects::nonNull)
                 .toList();
     }

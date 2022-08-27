@@ -1,6 +1,7 @@
 package com.jonahseguin.payload.server.event;
 
 import org.bson.Document;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -16,6 +17,7 @@ public class PayloadPlayerEvent extends Event {
     private final Document data;
 
     public PayloadPlayerEvent(UUID uuid, boolean mustBeOnline, Player player, Document data) {
+        super(!Bukkit.isPrimaryThread());
         this.uuid = uuid;
         this.mustBeOnline = mustBeOnline;
         this.player = player;

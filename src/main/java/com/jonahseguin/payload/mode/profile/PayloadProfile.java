@@ -191,7 +191,7 @@ public abstract class PayloadProfile implements Payload<UUID> {
         Document data = new Document();
         data.put("action", "MESSAGE_PLAYER");
         data.put("message", GsonComponentSerializer.gson().serialize(component));
-        data.put("isComponent", false);
+        data.put("isComponent", true);
 
         ServerService serverService = this.getCache().getDatabase().getServerService();
         ServerPublisher publisher = serverService.getPublisher();

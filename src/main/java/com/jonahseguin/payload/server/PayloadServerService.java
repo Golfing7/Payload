@@ -17,6 +17,7 @@ import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -114,8 +115,17 @@ public class PayloadServerService implements Runnable, ServerService {
         }
     }
 
+    private Pair<Boolean, UUID> isUUID(String rawUUID) {
+        try {
+            UUID uuid = UUID.fromString(rawUUID);
+            return Pair.of(true, uuid);
+        } catch (Exception ex) {
+            return Pair.of(false, null);
+        }
+    }
+
     private void handlePlayerEvent(Document data) {
-        UUID uuid = UUID.fromString(data.getString("uuid"));
+        UUID uuid = data.get("uuid", UUID.class);
         boolean mustBeOnline = data.getBoolean("mustBeOnline", true);
         Player player = Bukkit.getPlayer(uuid);
         if (mustBeOnline && player == null) {

@@ -41,7 +41,7 @@ public class ProfileListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayer(PayloadPlayerEvent event) {
+    public void onPayloadPlayerEvent(PayloadPlayerEvent event) {
         Document data = event.getData();
         if (data == null || !data.getString("action").equalsIgnoreCase("MESSAGE_PLAYER")) {
             return;
@@ -57,7 +57,8 @@ public class ProfileListener implements Listener {
             return;
         }
 
-        if (data.getBoolean("isComponent", false)) {
+        boolean isComponent = data.getBoolean("isComponent", false);
+        if (isComponent) {
             Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
             player.sendMessage(component);
             return;
