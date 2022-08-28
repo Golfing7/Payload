@@ -6,6 +6,7 @@
 package com.jonahseguin.payload.mode.profile;
 
 import com.google.inject.Inject;
+import com.jonahseguin.payload.PayloadMode;
 import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
@@ -141,6 +142,10 @@ public abstract class PayloadProfile implements Payload<UUID> {
     public boolean isOnlineInstancing() {
         if (this.isOnline()) {
             return true;
+        }
+
+        if (this.getCache().getMode() != PayloadMode.NETWORK_NODE) {
+            return false;
         }
 
         Optional<NetworkProfile> networked = getNetworked();
