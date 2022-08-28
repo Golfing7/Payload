@@ -8,6 +8,7 @@ package com.jonahseguin.payload.mode.profile;
 import com.google.inject.Inject;
 import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.type.Payload;
+import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.util.MsgBuilder;
 import com.jonahseguin.payload.server.ServerPublisher;
 import com.jonahseguin.payload.server.ServerService;
@@ -25,6 +26,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 import java.util.UUID;
 
 // The implementing class of this abstract class must add an @Entity annotation (from MongoDB) with a collection name!
@@ -135,6 +137,19 @@ public abstract class PayloadProfile implements Payload<UUID> {
     protected abstract void init();
 
     protected abstract void uninit();
+
+    public boolean isOnlineInstancing() {
+        if (this.isOnline()) {
+            return true;
+        }
+
+        Optional<NetworkProfile> networked = getNetworked();
+        return networked.isPresent() && networked.get().isOnline();
+    }
+
+    public Optional<NetworkProfile> getNetworked() {
+        return this.cache.getNetworked(this.getUniqueId());
+    }
 
     public boolean isOnline() {
         if (this.player == null) {
