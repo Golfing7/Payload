@@ -11,6 +11,7 @@ import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.database.mongo.PayloadMongo;
 import com.jonahseguin.payload.database.redis.PayloadRedis;
 import com.jonahseguin.payload.database.redis.PayloadRedisMonitor;
+import com.jonahseguin.payload.database.redis.RedisAccess;
 import com.jonahseguin.payload.server.ServerService;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
@@ -62,5 +63,5 @@ public interface PayloadDatabase {
     StatefulRedisPubSubConnection<String, String> getRedisPubSub();
 
     RedisClient getRedisClient();
-
+    RedisAccess getRedisAccess();
 }

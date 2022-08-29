@@ -63,7 +63,7 @@ public class PayloadPlugin extends JavaPlugin {
         return ChatColor.translateAlternateColorCodes('&', s);
     }
 
-    static PayloadPlugin getPlugin() {
+    public static PayloadPlugin getPlugin() {
         return plugin;
     }
 
