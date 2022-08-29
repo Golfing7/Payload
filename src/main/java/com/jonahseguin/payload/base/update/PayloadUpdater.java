@@ -21,6 +21,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
     private static final String KEY_SOURCE_SERVER = "sourceServer";
     private static final String KEY_IDENTIFIER = "identifier";
     private static final String KEY_FORCE_LOAD = "forceLoad";
+    private static final String KEY_IS_DELETE = "isDelete";
 
     private final Cache<K, X> cache;
     private final DatabaseService database;
@@ -85,10 +86,20 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
                 String sourceServerString = document.getString(KEY_SOURCE_SERVER);
                 String identifierString = document.getString(KEY_IDENTIFIER);
                 boolean force = document.getBoolean(KEY_FORCE_LOAD, false);
+                boolean isDelete = document.getBoolean(KEY_IS_DELETE, false);
                 if (sourceServerString != null && identifierString != null) {
                     if (!sourceServerString.equalsIgnoreCase(database.getServerService().getThisServer().getName())) {
                         // As long as the source server wasn't us
                         final K identifier = cache.keyFromString(identifierString);
+                        if (isDelete) {
+                            if (!cache.isCached(identifier)) {
+                                return;
+                            }
+
+                            cache.uncache(identifier);
+                            return;
+                        }
+
                         if (cache.isCached(identifier) || force) {
                             cache.runAsync(() -> cache.getFromDatabase(identifier).ifPresent(payload -> {
                                 cache.cache(payload);
@@ -107,6 +118,22 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
         }
     }
 
+    public boolean pushDelete(@Nonnull X payload) {
+        try {
+            final Document document = new Document();
+            document.append(KEY_SOURCE_SERVER, database.getServerService().getThisServer().getName());
+            document.append(KEY_IDENTIFIER, cache.keyToString(payload.getIdentifier()));
+            document.append(KEY_FORCE_LOAD, true);
+            document.append(KEY_IS_DELETE, true);
+            final String json = document.toJson();
+            cache.runAsync(() -> database.getRedis().async().publish(channel, json));
+            return true;
+        } catch (Exception ex) {
+            cache.getErrorService().capture(ex, "Failed to push delete from PayloadUpdater for Payload: " + cache.keyToString(payload.getIdentifier()));
+            return false;
+        }
+    }
+
     public boolean pushUpdate(@Nonnull X payload) {
         return pushUpdate(payload, false);
     }
@@ -118,6 +145,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
             document.append(KEY_SOURCE_SERVER, database.getServerService().getThisServer().getName());
             document.append(KEY_IDENTIFIER, cache.keyToString(payload.getIdentifier()));
             document.append(KEY_FORCE_LOAD, force);
+            document.append(KEY_IS_DELETE, false);
             final String json = document.toJson();
             cache.runAsync(() -> database.getRedis().async().publish(channel, json));
             return true;

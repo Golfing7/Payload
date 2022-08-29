@@ -377,6 +377,13 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     @Override
     public void delete(@Nonnull UUID key) {
         Preconditions.checkNotNull(key);
+        if (mode == PayloadMode.NETWORK_NODE) {
+            try {
+                this.get(key).ifPresent(payload -> this.getUpdater().pushDelete(payload));
+            } catch (Exception ignored) {
+            }
+        }
+
         controllers.remove(key);
         localStore.remove(key);
         mongoStore.remove(key);

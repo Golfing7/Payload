@@ -20,20 +20,15 @@ import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.update.PayloadUpdater;
 import com.jonahseguin.payload.database.DatabaseService;
-import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.server.ServerService;
 import dev.morphia.annotations.Entity;
-import dev.morphia.mapping.MappingException;
-import dev.morphia.query.ValidationException;
 import lombok.Getter;
-import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -364,6 +359,13 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     @Override
     public void delete(@Nonnull K key) {
         Preconditions.checkNotNull(key);
+
+        if (mode == PayloadMode.NETWORK_NODE) {
+            try {
+                this.get(key).ifPresent(payload -> this.getUpdater().pushDelete(payload));
+            } catch (Exception ignored) {
+            }
+        }
 
         controller(key).forget();
 
