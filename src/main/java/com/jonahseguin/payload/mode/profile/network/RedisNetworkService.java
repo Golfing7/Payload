@@ -60,6 +60,9 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
             if (json != null && json.length() > 0) {
                 BasicDBObject dbObject = BasicDBObject.parse(json);
                 NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
+                if (!networkProfile.isOnline()) {
+                    return;
+                }
                 onlinePlayerSet.add(networkProfile);
             }
         });
