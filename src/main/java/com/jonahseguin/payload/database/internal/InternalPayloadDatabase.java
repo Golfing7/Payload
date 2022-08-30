@@ -20,11 +20,13 @@ import com.jonahseguin.payload.database.mongo.PayloadMongo;
 import com.jonahseguin.payload.database.mongo.PayloadMongoMonitor;
 import com.jonahseguin.payload.database.redis.PayloadRedis;
 import com.jonahseguin.payload.database.redis.PayloadRedisMonitor;
+import com.jonahseguin.payload.database.redis.RedisAccess;
 import com.jonahseguin.payload.server.ServerService;
 import com.mongodb.*;
 import com.mongodb.client.MongoDatabase;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import lombok.Getter;
@@ -39,11 +41,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 @Getter
 @Setter
 @Singleton
-public class InternalPayloadDatabase implements PayloadDatabase {
+public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
 
     private final DatabaseState state = new DatabaseState();
     private final String name;
@@ -205,6 +209,11 @@ public class InternalPayloadDatabase implements PayloadDatabase {
         }
     }
 
+    @Override
+    public RedisAccess getRedisAccess() {
+        return this;
+    }
+
     private boolean disconnectMongo() {
         if (this.mongoClient != null) {
             this.mongoClient.close();
@@ -314,4 +323,17 @@ public class InternalPayloadDatabase implements PayloadDatabase {
         fromConfig(config);
     }
 
+    @Override
+    public Future<Boolean> setString(String key, String value) {
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        redis.async().set(key, value).thenAccept((response) -> result.complete(response.equals("OK")));
+        return result;
+    }
+
+    @Override
+    public Future<Boolean> setIfMissing(String key, String value) {
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        redis.async().setnx(key, value).thenAccept(result::complete);
+        return result;
+    }
 }
