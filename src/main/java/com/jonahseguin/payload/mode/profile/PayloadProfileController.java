@@ -69,7 +69,12 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         this.username = username;
         this.loginIp = loginIp;
     }
-    
+
+    @Override
+    public Optional<X> get() {
+        return cache();
+    }
+
     @Override
     public Optional<X> cache() {
         payloadLock.lock();

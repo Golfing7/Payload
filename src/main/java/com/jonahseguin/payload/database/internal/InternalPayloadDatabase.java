@@ -336,4 +336,9 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
         redis.async().setnx(key, value).thenAccept(result::complete);
         return result;
     }
+
+    @Override
+    public void removeKey(String key) {
+        redis.async().del(key);
+    }
 }

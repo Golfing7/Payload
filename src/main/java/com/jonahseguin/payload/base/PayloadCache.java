@@ -27,6 +27,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
@@ -305,6 +306,12 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     }
 
     @Override
+    public Optional<X> getNoCache(@NotNull K key) {
+        Preconditions.checkNotNull(key);
+        return controller(key).cache();
+    }
+
+    @Override
     public Optional<X> getFromCache(@Nonnull K key) {
         Preconditions.checkNotNull(key);
         return getLocalStore().get(key);
@@ -320,6 +327,16 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     public boolean save(@Nonnull X payload) {
         Preconditions.checkNotNull(payload);
         cache(payload);
+        boolean mongo = getDatabaseStore().save(payload);
+        if (!mongo) {
+            errorService.capture("Failed to save payload " + keyToString(payload.getIdentifier()));
+        }
+        return mongo;
+    }
+
+    @Override
+    public boolean saveNoCache(@NotNull X payload) {
+        Preconditions.checkNotNull(payload);
         boolean mongo = getDatabaseStore().save(payload);
         if (!mongo) {
             errorService.capture("Failed to save payload " + keyToString(payload.getIdentifier()));

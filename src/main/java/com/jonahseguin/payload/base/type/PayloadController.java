@@ -7,6 +7,12 @@ public interface PayloadController<X extends Payload> {
 
     Optional<X> cache();
 
+    /**
+     * Gets the payload. Caching may or may not happen.
+     * @return the payload.
+     */
+    Optional<X> get();
+
     void uncache(@Nonnull X payload, boolean switchingServers);
 
     /**

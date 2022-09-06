@@ -22,4 +22,10 @@ public interface RedisAccess {
      * @return a future of the state of the operation, true if the key was set, false if it already existed.
      */
     Future<Boolean> setIfMissing(String key, String value);
+
+    /**
+     * Remove the key from the redis database.
+     * @param key the key to remove.
+     */
+    void removeKey(String key);
 }

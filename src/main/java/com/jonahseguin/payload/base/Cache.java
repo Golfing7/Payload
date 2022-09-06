@@ -31,11 +31,23 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
 
     Optional<X> get(@Nonnull K key);
 
+    /**
+     * Gets the element without caching it at the end if this is an object cache.
+     * @return the optional of the element.
+     */
+    Optional<X> getNoCache(@Nonnull K key);
+
     Optional<X> getFromCache(@Nonnull K key);
 
     Optional<X> getFromDatabase(@Nonnull K key);
 
     boolean save(@Nonnull X payload);
+
+    /**
+     * Saves the element without caching it if this is an object cache.
+     * @return If the save is successful.
+     */
+    boolean saveNoCache(@Nonnull X key);
 
     void saveAsync(@Nonnull X payload);
 

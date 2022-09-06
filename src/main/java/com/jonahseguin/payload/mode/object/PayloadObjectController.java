@@ -45,44 +45,18 @@ public class PayloadObjectController<X extends PayloadObject> implements Payload
     }
 
     @Override
-    public Optional<X> cache() {
-        /*if (cache.getSyncMode().equals(SyncMode.ALWAYS) && cache.getSettings().isEnableSync() && cache.isCached(identifier)) {
-            load(true);
-        } else {
-            if (cache.getMode().equals(PayloadMode.NETWORK_NODE)) {
-                Optional<NetworkObject> network = cache.getNetworked(identifier);
-                if (network.isPresent()) {
-                    NetworkObject no = network.get();
-                    if (no.isThisMostRelevantServer()) {
-                        load(true);
-                    } else {
-                        // Handshake
-                        HandshakeHandler<ObjectHandshake> h = cache.getHandshakeService().publish(new ObjectHandshake(cache.getInjector(), cache, identifier));
-                        h.waitForReply(cache.getSettings().getHandshakeTimeoutSeconds());
-                        load(false);
-                    }
+    public Optional<X> get() {
+        load(true);
 
-                    if (payload != null) {
-                        no.markLoaded();
-                        cache.getNetworkService().save(no);
-                    }
-                } else {
-                    // They have no network object, create it and load from the first available source
-                    load(true);
-                    if (payload != null) {
-                        network = cache.getNetworked(payload);
-                        if (network.isPresent()) {
-                            NetworkObject no = network.get();
-                            no.markLoaded();
-                            cache.getNetworkService().save(no);
-                        }
-                    }
-                }
-            } else {
-                // Standalone mode
-                load(true);
-            }
-        }*/
+        if (payload != null) {
+            X p = payload.get();
+            return Optional.ofNullable(p);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<X> cache() {
         load(true);
 
         if (payload != null) {

@@ -289,6 +289,11 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         return controller.cache();
     }
 
+    @Override
+    public Optional<X> getNoCache(@NotNull UUID key) {
+        return get(key);
+    }
+
     @Nonnull
     @Override
     public Set<X> getOnline() {
@@ -458,6 +463,11 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         } else {
             return saveMongo(payload);
         }
+    }
+
+    @Override
+    public boolean saveNoCache(@NotNull X payload) {
+        return save(payload);
     }
 
     private boolean saveMongo(@Nonnull X payload) {
