@@ -418,7 +418,11 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     @Nonnull
     public Set<X> getAll() {
         final Set<X> all = this.localStore.getAll().stream().filter(PayloadProfile::isOnline).collect(Collectors.toSet());
-        all.addAll(this.mongoStore.getAll().stream().filter(x -> all.stream().noneMatch(x2 -> x.getUniqueId().equals(x2.getUniqueId()))).collect(Collectors.toSet()));
+        Collection<X> allOnMongo = this.mongoStore.getAll();
+        for(X payload : allOnMongo) {
+            if(all.stream().noneMatch(thing -> thing.getUniqueId().equals(payload.getUniqueId())))
+                all.add(payload);
+        }
         return all;
     }
 
