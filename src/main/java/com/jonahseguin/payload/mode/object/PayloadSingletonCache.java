@@ -39,9 +39,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Getter
 @Singleton
-public class PayloadSingletonCache<X> extends PayloadObjectCache<PayloadSingletonCache.Wrapper<X>> implements ObjectCache<PayloadSingletonCache.Wrapper<X>> {
-    public PayloadSingletonCache(Injector injector, PayloadInstantiator<String, Wrapper<X>> instantiator, String name, Class<Wrapper<X>> payload) {
-        super(injector, instantiator, name, payload);
+public class PayloadSingletonCache<X> extends PayloadObjectCache<PayloadSingletonCache.Wrapper> implements ObjectCache<PayloadSingletonCache.Wrapper> {
+    public PayloadSingletonCache(Injector injector, String name) {
+        super(injector, name, Wrapper.class);
+
+        //Set the instantiator.
+        setInstantiator((inst) -> new Wrapper(this));
     }
 
     /**
@@ -54,7 +57,7 @@ public class PayloadSingletonCache<X> extends PayloadObjectCache<PayloadSingleto
             return;
         }
 
-        Wrapper<X> wrapped = wrap(value);
+        Wrapper wrapped = wrap(value);
         save(wrapped);
     }
 
@@ -68,7 +71,7 @@ public class PayloadSingletonCache<X> extends PayloadObjectCache<PayloadSingleto
             return;
         }
 
-        Wrapper<X> wrapped = wrap(value);
+        Wrapper wrapped = wrap(value);
         saveNoCache(wrapped);
     }
 
@@ -76,8 +79,9 @@ public class PayloadSingletonCache<X> extends PayloadObjectCache<PayloadSingleto
      * Gets the value of this payload cache.
      * @return the value stored in this database, empty if no value is stored.
      */
+    @SuppressWarnings("unchecked")
     public Optional<X> get(){
-        return get("0").flatMap(val -> Optional.of(val.getValue()));
+        return (Optional<X>) get("0");
     }
 
     /**
@@ -85,24 +89,23 @@ public class PayloadSingletonCache<X> extends PayloadObjectCache<PayloadSingleto
      * @param value the value to wrap.
      * @return the wrapper.
      */
-    protected Wrapper<X> wrap(X value){
-        return new Wrapper<>(this, value);
+    protected Wrapper wrap(X value){
+        return new Wrapper(this, value);
     }
 
     /**
      * Wraps a value in a simple PayloadObject instance to be stored in the object cache.
-     * @param <T> the type to be stored.
      */
-    protected static class Wrapper<T> extends PayloadObject{
+    protected static class Wrapper extends PayloadObject{
         private final String identifier = "0";
         @Getter @Setter
-        private T value;
+        private Object value;
 
         public Wrapper(ObjectCache cache) {
             super(cache);
         }
 
-        public Wrapper(ObjectCache cache, T value) {
+        public Wrapper(ObjectCache cache, Object value) {
             super(cache);
             this.value = value;
         }

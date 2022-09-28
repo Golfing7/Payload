@@ -48,6 +48,20 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
         this.findIDFieldName();
     }
 
+    /**
+     * A package-private constructor that allows future assignment of the instantiator field.
+     *
+     * @param injector the injector.
+     * @param name the name.
+     * @param payload the payload class.
+     */
+    PayloadObjectCache(Injector injector, String name, Class<X> payload) {
+        super(injector, name, String.class, payload);
+        setupModule();
+
+        this.findIDFieldName();
+    }
+
     private void findIDFieldName(){
         try{
             PayloadObject object = payloadClass.getConstructor(ObjectCache.class).newInstance(this);

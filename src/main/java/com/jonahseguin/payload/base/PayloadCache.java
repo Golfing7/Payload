@@ -79,6 +79,17 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
         this.resolveEntityName();
     }
 
+    protected PayloadCache(Injector injector, String name, Class<K> key, Class<X> payload) {
+        this.injector = injector;
+        this.name = name;
+        this.keyClass = key;
+        this.payloadClass = payload;
+
+        ALL_CACHES.add(this);
+
+        this.resolveEntityName();
+    }
+
     private void resolveEntityName(){
         Entity annotation = this.payloadClass.getAnnotation(Entity.class);
         if(annotation != null){
