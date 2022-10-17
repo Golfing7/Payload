@@ -268,9 +268,11 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
                     load(false);
                 }
             } else {
+                cache.getErrorService().debug("Player with uuid " + uuid.toString() + " is not logging in from another server!");
                 load(networkProfile.isOnlineThisServer()); // only load from local if they're online this server
             }
         } else {
+            cache.getErrorService().debug("Network Profile for uuid " + uuid.toString() + " is null");
             // Create the network profile
             load(true);
             if (payload != null) {
