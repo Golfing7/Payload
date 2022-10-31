@@ -21,6 +21,8 @@ import com.jonahseguin.payload.database.mongo.PayloadMongoMonitor;
 import com.jonahseguin.payload.database.redis.PayloadRedis;
 import com.jonahseguin.payload.database.redis.PayloadRedisMonitor;
 import com.jonahseguin.payload.database.redis.RedisAccess;
+import com.jonahseguin.payload.database.redis.packets.PayloadPacket;
+import com.jonahseguin.payload.database.redis.packets.channel.Channel;
 import com.jonahseguin.payload.server.ServerService;
 import com.mongodb.*;
 import com.mongodb.client.MongoDatabase;
@@ -28,6 +30,7 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.ChannelMessage;
 import lombok.Getter;
@@ -342,5 +345,28 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
     @Override
     public void removeKey(String key) {
         redis.async().del(key);
+    }
+
+    @Override
+    public void registerPacketChannel(Channel channel) {
+
+    }
+
+    @Override
+    public void unregisterPacketChannel(Channel channel) {
+
+    }
+
+    @Override
+    public void sendOnPacketChannel(Channel channel, PayloadPacket packet) {
+        try{
+            StringBuilder joiner = new StringBuilder();
+            for(String token : packet.encode()){
+                joiner.append(token);
+            }
+            redisPubSub.async().publish(channel.getChannelName(), joiner.toString()); //TODO: Make interpretations possible.
+        }catch(IllegalAccessException exc){
+            exc.printStackTrace();
+        }
     }
 }
