@@ -1,10 +1,5 @@
 package com.jonahseguin.payload.database.redis;
 
-import com.jonahseguin.payload.database.redis.packets.PayloadPacket;
-import com.jonahseguin.payload.database.redis.packets.channel.Channel;
-import io.lettuce.core.RedisFuture;
-import io.lettuce.core.pubsub.RedisPubSubListener;
-
 import java.util.concurrent.Future;
 
 /**
@@ -31,18 +26,4 @@ public interface RedisAccess {
      * @param key the key to remove.
      */
     void removeKey(String key);
-
-    /**
-     * Registers a given channel to the redis pub sub.
-     * @param channel the channel to register.
-     */
-    void registerPacketChannel(Channel channel);
-
-    /**
-     * Unregisters a given channel from the redis pubsub.
-     * @param channel the channel to unregister.
-     */
-    void unregisterPacketChannel(Channel channel);
-
-    void sendOnPacketChannel(Channel channel, PayloadPacket packet);
 }

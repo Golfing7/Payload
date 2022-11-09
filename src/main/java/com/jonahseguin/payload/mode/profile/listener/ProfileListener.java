@@ -43,7 +43,7 @@ public class ProfileListener implements Listener {
     @EventHandler
     public void onPayloadPlayerEvent(PayloadPlayerEvent event) {
         Document data = event.getData();
-        if (data == null || !data.getString("action").equalsIgnoreCase("MESSAGE_PLAYER")) {
+        if (data == null || !data.containsKey("action") || !data.getString("action").equalsIgnoreCase("MESSAGE_PLAYER")) {
             return;
         }
 
