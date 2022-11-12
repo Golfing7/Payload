@@ -7,6 +7,7 @@ package com.jonahseguin.payload.server;
 
 import com.google.common.base.Preconditions;
 import org.bson.Document;
+import org.bukkit.Bukkit;
 
 import java.util.UUID;
 
@@ -59,6 +60,8 @@ public class ServerPublisher {
     }
 
     public void publishQuit() {
+        Bukkit.getLogger().info("SERVER QUIT REQUESTED!");
+        Thread.dumpStack();
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
                 payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.QUIT.getEvent(), payloadServerService.getThisServer().getName());

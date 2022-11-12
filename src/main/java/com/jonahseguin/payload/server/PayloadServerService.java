@@ -93,6 +93,7 @@ public class PayloadServerService implements Runnable, ServerService {
                             if (event.equals(ServerEvent.JOIN)) {
                                 handleJoin(patternMessage.getMessage());
                             } else if (event.equals(ServerEvent.QUIT)) {
+                                Bukkit.getLogger().info("Server quit received!");
                                 handleQuit(patternMessage.getMessage());
                             } else if (event.equals(ServerEvent.PING)) {
                                 handlePing(patternMessage.getMessage());

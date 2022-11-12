@@ -10,6 +10,7 @@ import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.mode.profile.PayloadProfile;
 import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.mongodb.BasicDBObject;
+import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -38,6 +39,12 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                 if (json != null && json.length() > 0) {
                     BasicDBObject dbObject = BasicDBObject.parse(json);
                     NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
+
+                    if(networkProfile != null) {
+                        Bukkit.getLogger().info("Loaded network profile for UUID %s! (Last connected server: %s)".formatted(uuid, networkProfile.getLastSeenServer()));
+                    }else {
+                        Bukkit.getLogger().info("Network profile was null for UUID %s!".formatted(uuid));
+                    }
                     return Optional.ofNullable(networkProfile);
                 } else {
                     return Optional.empty();
