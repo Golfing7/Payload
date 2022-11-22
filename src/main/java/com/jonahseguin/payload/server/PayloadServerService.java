@@ -14,6 +14,7 @@ import com.jonahseguin.payload.annotation.Database;
 import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
+import com.jonahseguin.payload.server.event.PayloadServerEvent;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import lombok.Getter;
@@ -105,6 +106,9 @@ public class PayloadServerService implements Runnable, ServerService {
                             } else if (event.equals(ServerEvent.PLAYER_EVENT)) {
                                 Document data = Document.parse(patternMessage.getMessage());
                                 handlePlayerEvent(data);
+                            } else if (event.equals(ServerEvent.SERVER_EVENT)) {
+                                Document data = Document.parse(patternMessage.getMessage());
+                                handleServerEvent(data);
                             }
                         }
                     }).subscribe();
@@ -138,6 +142,17 @@ public class PayloadServerService implements Runnable, ServerService {
 
         PayloadPlayerEvent payloadPlayerEvent = new PayloadPlayerEvent(uuid, mustBeOnline, player, data);
         Bukkit.getPluginManager().callEvent(payloadPlayerEvent);
+    }
+
+    private void handleServerEvent(Document data) {
+        String destinationServer = data.containsKey("destination-server") ? data.getString("destination-server") : null;
+        if(destinationServer != null && !this.getThisServer().getName().equals(destinationServer))
+            return;
+
+        data.remove("destination-server");
+
+        PayloadServerEvent serverEvent = new PayloadServerEvent(destinationServer, data);
+        Bukkit.getPluginManager().callEvent(serverEvent);
     }
 
     @Override

@@ -11,6 +11,7 @@ public enum ServerEvent {
     PING("payload-server-ping"),
     QUIT("payload-server-quit"),
     UPDATE_NAME("payload-server-update-name"),
+    SERVER_EVENT("payload-server-event"),
     PLAYER_EVENT("payload-player-event");
 
     private final String event;

@@ -32,6 +32,19 @@ public class ServerPublisher {
 
     }
 
+    public void publishServerEvent(String destinationServer, Document data) {
+        if(destinationServer != null)
+            data.put("destination-server", destinationServer);
+
+        this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
+            try {
+                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.SERVER_EVENT.getEvent(), data.toJson());
+            }catch(Exception ex) {
+                payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing SERVER_EVENT event");
+            }
+        });
+    }
+
     public void publishPing() {
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
