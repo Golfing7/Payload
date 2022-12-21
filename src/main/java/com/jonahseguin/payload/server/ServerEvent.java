@@ -9,6 +9,7 @@ public enum ServerEvent {
 
     JOIN("payload-server-join"),
     PING("payload-server-ping"),
+    PING_REPLY("payload-server-ping-reply"),
     QUIT("payload-server-quit"),
     UPDATE_NAME("payload-server-update-name"),
     SERVER_EVENT("payload-server-event"),

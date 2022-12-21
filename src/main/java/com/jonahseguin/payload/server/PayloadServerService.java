@@ -67,7 +67,7 @@ public class PayloadServerService implements Runnable, ServerService {
             boolean sub = subscribe();
 
             this.publisher.publishJoin();
-            this.pingTask = payloadPlugin.getServer().getScheduler().runTaskTimerAsynchronously(payloadPlugin, this, (PING_FREQUENCY_SECONDS * 20), (PING_FREQUENCY_SECONDS * 20));
+            this.pingTask = payloadPlugin.getServer().getScheduler().runTaskTimerAsynchronously(payloadPlugin, this, 0L, (PING_FREQUENCY_SECONDS * 20));
             running = true;
             return sub;
         } catch (Exception ex) {
@@ -94,7 +94,6 @@ public class PayloadServerService implements Runnable, ServerService {
                             if (event.equals(ServerEvent.JOIN)) {
                                 handleJoin(patternMessage.getMessage());
                             } else if (event.equals(ServerEvent.QUIT)) {
-                                Bukkit.getLogger().info("Server quit received!");
                                 handleQuit(patternMessage.getMessage());
                             } else if (event.equals(ServerEvent.PING)) {
                                 handlePing(patternMessage.getMessage());
@@ -109,6 +108,16 @@ public class PayloadServerService implements Runnable, ServerService {
                             } else if (event.equals(ServerEvent.SERVER_EVENT)) {
                                 Document data = Document.parse(patternMessage.getMessage());
                                 handleServerEvent(data);
+                            }else if(event.equals(ServerEvent.PING_REPLY)) {
+                                Document data = Document.parse(patternMessage.getMessage());
+                                String serverDest = data.getString("server");
+                                String sender = data.getString("sender");
+
+                                if(!serverDest.equals(this.getThisServer().getName())) {
+                                    return;
+                                }
+
+                                handlePingReply(sender);
                             }
                         }
                     }).subscribe();
@@ -177,6 +186,22 @@ public class PayloadServerService implements Runnable, ServerService {
     }
 
     void handlePing(@Nonnull String serverName) {
+        if (this.servers.containsKey(serverName.toLowerCase())) {
+            this.servers.get(serverName.toLowerCase()).setLastPing(System.currentTimeMillis());
+        } else {
+            this.handleJoin(serverName);
+        }
+
+        //Reply to the sender letting them know we're online
+        this.publisher.publishPingReply(serverName);
+    }
+
+    /**
+     * Used as a way for another server to reply to this one. It will be sent as a 'reply' from a ping packet.
+     *
+     * @param serverName the name of the server that we initially pinged
+     */
+    void handlePingReply(@Nonnull String serverName) {
         if (this.servers.containsKey(serverName.toLowerCase())) {
             this.servers.get(serverName.toLowerCase()).setLastPing(System.currentTimeMillis());
         } else {

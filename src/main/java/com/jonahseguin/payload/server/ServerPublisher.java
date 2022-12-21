@@ -45,6 +45,24 @@ public class ServerPublisher {
         });
     }
 
+    /**
+     * Used as a reply to a ping packet.
+     */
+    public void publishPingReply(String destination) {
+        //Putting it into a document is necessary as the server destination will ignore it if we do not.
+        Document pingReply = new Document();
+        pingReply.put("server", destination);
+        pingReply.put("sender", payloadServerService.getThisServer().getName());
+
+        this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
+            try{
+                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.PING_REPLY.getEvent(), pingReply.toJson());
+            }catch(Exception ex) {
+                payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing PING_REPLY event");
+            }
+        });
+    }
+
     public void publishPing() {
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
