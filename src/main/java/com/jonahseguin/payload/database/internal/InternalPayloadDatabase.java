@@ -27,12 +27,14 @@ import com.mongodb.client.MongoDatabase;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.ChannelMessage;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -186,7 +188,10 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
             // Try connection
 
             if (redisClient == null) {
-                redisClient = RedisClient.create(payloadRedis.getRedisURI());
+                RedisURI redisURI = payloadRedis.getRedisURI();
+                Bukkit.getLogger().info("Payload -- Connecting to redis on DB: " + redisURI.getDatabase());
+
+                redisClient = RedisClient.create(redisURI);
             }
 
             if (redis == null) {

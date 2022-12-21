@@ -7,6 +7,7 @@ package com.jonahseguin.payload.database.redis;
 
 import io.lettuce.core.RedisURI;
 import lombok.Data;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
 @Data
@@ -22,7 +23,6 @@ public class PayloadRedis {
 
     public static PayloadRedis fromConfig(ConfigurationSection section) {
         String address = section.getString("address");
-        System.out.println(section.getCurrentPath() + ", " + section.getString("address") + ", " + address);
         int port = section.getInt("port");
 
         ConfigurationSection authSection = section.getConfigurationSection("auth");
@@ -48,7 +48,6 @@ public class PayloadRedis {
         if (useURI()) {
             return RedisURI.create(this.uri);
         } else {
-            System.out.println(address + ":" + port);
             RedisURI.Builder builder = RedisURI.builder()
                     .withHost(address)
                     .withPort(port)
@@ -57,7 +56,6 @@ public class PayloadRedis {
             if (auth) {
                 builder.withPassword(password);
             }
-            System.out.println(builder.build().toURI().toString());
             return builder.build();
         }
     }

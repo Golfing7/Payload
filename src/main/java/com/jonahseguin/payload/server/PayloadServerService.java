@@ -186,12 +186,11 @@ public class PayloadServerService implements Runnable, ServerService {
 
     void handleJoin(@Nonnull String serverName) {
         if (this.servers.containsKey(serverName.toLowerCase())) {
-            Bukkit.getLogger().info("PAYLOAD -- Server %s came online!".formatted(serverName));
-
-            this.servers.get(serverName.toLowerCase()).setOnline(true);
+            PayloadServer payloadServer = this.servers.get(serverName.toLowerCase());
+            payloadServer.setOnline(true);
+            //We must also update the ping time as the server may have just come BACK online.
+            payloadServer.setLastPing(System.currentTimeMillis());
         } else {
-            Bukkit.getLogger().info("PAYLOAD -- REGISTERED %s server!".formatted(serverName));
-
             this.register(serverName, true);
         }
     }
