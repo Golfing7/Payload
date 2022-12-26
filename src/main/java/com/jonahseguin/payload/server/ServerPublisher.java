@@ -91,15 +91,8 @@ public class ServerPublisher {
     }
 
     public void publishQuit() {
-        Bukkit.getLogger().info("SERVER QUIT REQUESTED!");
-        Thread.dumpStack();
-        this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
-            try {
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.QUIT.getEvent(), payloadServerService.getThisServer().getName());
-            } catch (Exception ex) {
-                payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing QUIT event");
-            }
-        });
+        //We must run this sync.
+        payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.QUIT.getEvent(), payloadServerService.getThisServer().getName());
     }
 
     public void publishUpdateName(String oldName, String newName) {

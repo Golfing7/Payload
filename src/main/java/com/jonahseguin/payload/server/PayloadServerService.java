@@ -89,6 +89,10 @@ public class PayloadServerService implements Runnable, ServerService {
                     .filter(pm -> !pm.getMessage().equalsIgnoreCase(database.getServerService().getThisServer().getName()))
                     .filter(pm -> eventList.stream().anyMatch(channel -> channel.equalsIgnoreCase(pm.getChannel())))
                     .doOnNext(patternMessage -> {
+                        //Don't do any events when
+                        if(!PayloadPlugin.getPlugin().isEnabled())
+                            return;
+
                         ServerEvent event = ServerEvent.fromChannel(patternMessage.getChannel());
                         if (event != null) {
                             if (event.equals(ServerEvent.JOIN)) {
