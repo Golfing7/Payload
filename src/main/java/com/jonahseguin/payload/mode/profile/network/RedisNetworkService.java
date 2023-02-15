@@ -91,6 +91,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                     NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
                     if (networkProfile != null) {
                         networkProfile.setIdentifier(payload.getIdentifier());
+                        networkProfile.setName(payload.getUsername());
                         return Optional.of(networkProfile);
                     } else {
                         return createForGet(payload);
@@ -166,6 +167,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
         Preconditions.checkNotNull(payload);
         NetworkProfile np = cache.createNetworked();
         np.setIdentifier(payload.getIdentifier());
+        np.setName(payload.getUsername());
         return np;
     }
 

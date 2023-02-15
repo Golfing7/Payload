@@ -324,6 +324,18 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     }
 
     @Override
+    public Collection<String> getOnlineInstancesNames() {
+        return this.networkService.getOnline().stream()
+                .map(NetworkProfile::getLastKnownName).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<UUID> getOnlineInstancesKeys() {
+        return this.networkService.getOnline().stream()
+                .map(NetworkProfile::getUuidID).collect(Collectors.toList());
+    }
+
+    @Override
     public boolean isCached(@Nonnull UUID key) {
         Preconditions.checkNotNull(key);
         return this.localStore.has(key);

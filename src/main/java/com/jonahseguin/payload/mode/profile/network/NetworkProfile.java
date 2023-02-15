@@ -33,6 +33,7 @@ public class NetworkProfile {
 
     protected String identifier;
     protected String lastSeenServer;
+    protected String lastKnownName;
     protected long lastSeen = 0L;
     protected boolean online = false;
     protected transient UUID uuidID = null;
@@ -94,6 +95,16 @@ public class NetworkProfile {
         Preconditions.checkNotNull(identifier);
         this.identifier = identifier.toString();
         this.uuidID = identifier;
+    }
+
+    /**
+     * Sets the last known name for this network profile.
+     *
+     * @param name the last known name.
+     */
+    public void setName(@Nonnull String name) {
+        Preconditions.checkNotNull(name);
+        this.lastKnownName = name;
     }
 
 }
