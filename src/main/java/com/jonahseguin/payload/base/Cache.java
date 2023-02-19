@@ -120,6 +120,8 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
 
     void runAsync(@Nonnull Runnable runnable);
 
+    void runAsyncImmediately(@Nonnull Runnable runnable);
+
     @Nonnull
     PLangService getLang();
 

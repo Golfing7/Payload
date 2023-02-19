@@ -109,7 +109,7 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         // - after save (or if they're not online) send reply
         cache.getErrorService().debug("Received handshake request for " + packet.getUuid() + " [" + packet.getSenderServer() + " -> " + packet.getTargetServer() + "]");
         final Player player = cache.getPlugin().getServer().getPlayer(packet.getUuid());
-        cache.runAsync(() -> {
+        cache.runAsyncImmediately(() -> { //Use runAsyncImmediately to avoid deadlock.
             if (player != null && player.isOnline()) {
                 cache.getFromCache(player).ifPresent(profile -> {
                     profile.onHandshakeRequest();

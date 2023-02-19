@@ -33,6 +33,8 @@ import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 /**
@@ -42,6 +44,8 @@ import java.util.concurrent.Executors;
 @Getter
 @Singleton
 public abstract class PayloadCache<K, X extends Payload<K>> implements Comparable<PayloadCache>, Cache<K, X> {
+    protected static final Executor SHARED_EXECUTOR = Executors.newCachedThreadPool();
+
     private static final Set<PayloadCache> ALL_CACHES = new HashSet<>();
     public static Set<PayloadCache> getAllCaches(){
         return ALL_CACHES;
@@ -464,6 +468,29 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
 
         Preconditions.checkNotNull(runnable);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
+    }
+
+    /**
+     * This method is intended to act as a mirror to the above method with one difference.
+     * It is backed by an executor pool instead of the bukkit scheduler. This is intentional,
+     * as if it uses the bukkit scheduler it's possibly to cause deadlocks in handshakes.
+     *
+     * @param runnable the runnable to run.
+     */
+    @Override
+    public void runAsyncImmediately(@NotNull Runnable runnable) {
+        if(!api.getPlugin().isEnabled()) {
+            Bukkit.getLogger().warning("[%s] - Tried to run async runnable but plugin is disabled! (Most likely harmless)");
+            return;
+        }
+
+        Preconditions.checkNotNull(runnable);
+        SHARED_EXECUTOR.execute(() -> {
+            if(!api.getPlugin().isEnabled())
+                return;
+
+            runnable.run();
+        });
     }
 
     /**
