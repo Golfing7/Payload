@@ -58,11 +58,21 @@ public class NetworkProfile {
     }
 
     public boolean isOnline() {
-        boolean shouldBeOnline = (System.currentTimeMillis() - lastSeen) < (1000 * 60 * 60);
+        boolean shouldBeOnline = (System.currentTimeMillis() - lastSeen) < (1000 * 60); // 1 minute
         if (online && !shouldBeOnline) {
             online = false;
         }
         return online;
+    }
+
+    /**
+     * Called periodically to 're-update' the last-seen millis.
+     */
+    public void heartbeat() {
+        if(!online)
+            return;
+
+        lastCached = System.currentTimeMillis();
     }
 
     public void markLoaded(boolean online) {

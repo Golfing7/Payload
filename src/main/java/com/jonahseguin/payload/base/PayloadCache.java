@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The abstract backbone of all Payload cache systems.
@@ -44,7 +45,7 @@ import java.util.concurrent.Executors;
 @Getter
 @Singleton
 public abstract class PayloadCache<K, X extends Payload<K>> implements Comparable<PayloadCache>, Cache<K, X> {
-    protected static final Executor SHARED_EXECUTOR = Executors.newCachedThreadPool();
+    protected static final ScheduledExecutorService SHARED_EXECUTOR = Executors.newScheduledThreadPool(4);
 
     private static final Set<PayloadCache> ALL_CACHES = new HashSet<>();
     public static Set<PayloadCache> getAllCaches(){

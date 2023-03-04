@@ -11,11 +11,23 @@ import com.jonahseguin.payload.mode.profile.PayloadProfile;
 import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.mongodb.BasicDBObject;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
 public class RedisNetworkService<X extends PayloadProfile> implements NetworkService<X> {
+
+    /**
+     * Used to keep track of if the heartbeat monitor has been set up.
+     */
+    private static boolean heartbeatMonitorSetup = false;
+    /**
+     * The task in control of doing heartbeats for all network profiles.
+     */
+    private static BukkitTask heartbeatMonitor = null;
 
     private final ProfileCache<X> cache;
     private final DatabaseService database;
@@ -39,12 +51,6 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                 if (json != null && json.length() > 0) {
                     BasicDBObject dbObject = BasicDBObject.parse(json);
                     NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
-
-                    if(networkProfile != null) {
-                        Bukkit.getLogger().info("Loaded network profile for UUID %s! (Last connected server: %s)".formatted(uuid, networkProfile.getLastSeenServer()));
-                    }else {
-                        Bukkit.getLogger().info("Network profile was null for UUID %s!".formatted(uuid));
-                    }
                     return Optional.ofNullable(networkProfile);
                 } else {
                     return Optional.empty();
@@ -174,17 +180,36 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
     @Override
     public boolean start() {
         running = true;
+        if(!heartbeatMonitorSetup)
+            initHeartbeatMonitor(this.cache);
         return true;
     }
 
     @Override
     public boolean shutdown() {
         running = false;
+        if(heartbeatMonitorSetup) {
+            heartbeatMonitor.cancel();
+            heartbeatMonitorSetup = false;
+        }
         return true;
     }
 
     @Override
     public boolean isRunning() {
         return running;
+    }
+
+    private static void initHeartbeatMonitor(ProfileCache<?> cache) {
+        heartbeatMonitor = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    cache.getNetworked(player.getUniqueId()).ifPresent(NetworkProfile::heartbeat);
+                }
+            }
+        }.runTaskTimerAsynchronously(cache.getPlugin(), 0, 20L);
+
+        heartbeatMonitorSetup = true;
     }
 }
