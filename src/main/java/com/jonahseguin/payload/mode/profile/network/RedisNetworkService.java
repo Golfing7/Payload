@@ -200,15 +200,19 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
         return running;
     }
 
-    private static void initHeartbeatMonitor(ProfileCache<?> cache) {
+    private static void initHeartbeatMonitor(RedisNetworkService<?> owner, ProfileCache<?> cache) {
         heartbeatMonitor = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    cache.getNetworked(player.getUniqueId()).ifPresent(NetworkProfile::heartbeat);
+                    Optional<NetworkProfile> networked = cache.getNetworked(player.getUniqueId());
+                    networked.ifPresent(profile -> {
+                        profile.heartbeat();
+                        owner.save(profile);
+                    });
                 }
             }
-        }.runTaskTimerAsynchronously(cache.getPlugin(), 0, 20L);
+        }.runTaskTimerAsynchronously(cache.getPlugin(), 0, 300L); //Do every 15 seconds to lessen network use.
 
         heartbeatMonitorSetup = true;
     }
