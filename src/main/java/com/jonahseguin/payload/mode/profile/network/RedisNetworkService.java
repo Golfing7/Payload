@@ -181,7 +181,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
     public boolean start() {
         running = true;
         if(!heartbeatMonitorSetup)
-            initHeartbeatMonitor(this, this.cache);
+            initHeartbeatMonitor(this);
         return true;
     }
 
