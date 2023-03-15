@@ -72,7 +72,7 @@ public class NetworkProfile {
         if(!online)
             return;
 
-        lastCached = System.currentTimeMillis();
+        lastCached = lastSeen = System.currentTimeMillis();
     }
 
     public void markLoaded(boolean online) {

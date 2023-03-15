@@ -44,6 +44,14 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
     boolean save(@Nonnull X payload);
 
     /**
+     * Saves the given payload and updates it in the payload.
+     *
+     * @param payload the payload to save and update.
+     * @return true if it worked.
+     */
+    boolean saveAndUpdate(@Nonnull X payload);
+
+    /**
      * Saves the element without caching it if this is an object cache.
      * @return If the save is successful.
      */

@@ -482,6 +482,15 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     }
 
     @Override
+    public boolean saveAndUpdate(@NotNull X payload) {
+        if(!this.save(payload))
+            return false;
+
+        this.pushUpdate(payload, true);
+        return true;
+    }
+
+    @Override
     public boolean saveNoCache(@NotNull X payload) {
         return save(payload);
     }

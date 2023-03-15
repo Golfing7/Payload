@@ -19,6 +19,7 @@ import com.jonahseguin.payload.mode.object.store.ObjectStoreLocal;
 import com.jonahseguin.payload.mode.object.store.ObjectStoreMongo;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
@@ -146,6 +147,14 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
     @Override
     public String keyFromString(@Nonnull String key) {
         return key;
+    }
+
+    @Override
+    public boolean saveAndUpdate(@NotNull X payload) {
+        if(!save(payload))
+            return false;
+        this.pushUpdate(payload, true);
+        return true;
     }
 
     @Override
