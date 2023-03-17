@@ -16,6 +16,8 @@ import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileLogoutEvent;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileSwitchServersEvent;
 import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
+import com.jonahseguin.payload.server.event.PlayerChangeServerEvent;
+import com.jonahseguin.payload.server.event.PlayerLeaveNetworkEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bson.Document;
@@ -114,7 +116,9 @@ public class ProfileListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onProfileQuit(final PlayerQuitEvent event) {
         final Player player = event.getPlayer();
-        api.getSortedCachesByDependsReversed().forEach(c -> {
+
+        boolean ranEvent = false;
+        for(Cache c : api.getSortedCachesByDepends()) {
             if (c instanceof PayloadProfileCache) {
                 PayloadProfileCache cache = (PayloadProfileCache) c;
                 if (cache.getMode().equals(PayloadMode.STANDALONE)) {
@@ -129,6 +133,15 @@ public class ProfileListener implements Listener {
                         profile.uninitializePlayer();
                         cache.saveAsync(profile);
                         cache.removeController(profile.getUniqueId());
+
+                        if(ranEvent)
+                            continue;
+
+                        //Run the event.
+                        PlayerLeaveNetworkEvent networkEvent = new PlayerLeaveNetworkEvent(event);
+                        networkEvent.callEvent();
+                        event.quitMessage(networkEvent.quitMessage());
+                        ranEvent = true;
                     }
                 } else if (cache.getMode().equals(PayloadMode.NETWORK_NODE)) {
                     Optional<PayloadProfile> o = cache.getFromCache(player.getUniqueId());
@@ -148,6 +161,15 @@ public class ProfileListener implements Listener {
                                 cache.removeController(player.getUniqueId());
                                 cache.getErrorService().debug("Saving player " + player.getName() + " on logout (not switching servers)");
                             });
+
+                            if(ranEvent)
+                                continue;
+
+                            //Run the event.
+                            PlayerLeaveNetworkEvent networkEvent = new PlayerLeaveNetworkEvent(event);
+                            networkEvent.callEvent();
+                            event.quitMessage(networkEvent.quitMessage());
+                            ranEvent = true;
                         } else {
                             PayloadProfileSwitchServersEvent payloadEvent = new PayloadProfileSwitchServersEvent(profile);
                             cache.getPlugin().getServer().getPluginManager().callEvent(payloadEvent);
@@ -156,6 +178,15 @@ public class ProfileListener implements Listener {
 
                             cache.controller(event.getPlayer().getUniqueId()).uncache(profile, true);
                             cache.getErrorService().debug("Not saving player " + player.getName() + " on quit (is switching servers)");
+
+                            if(ranEvent)
+                                continue;
+
+                            //Run the event.
+                            PlayerChangeServerEvent networkEvent = new PlayerChangeServerEvent(event);
+                            networkEvent.callEvent();
+                            event.quitMessage(networkEvent.quitMessage());
+                            ranEvent = true;
                         }
                     } else {
                         // This shouldn't happen
@@ -163,7 +194,7 @@ public class ProfileListener implements Listener {
                     }
                 }
             }
-        });
+        }
     }
 
 }
