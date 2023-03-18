@@ -17,6 +17,9 @@ import com.jonahseguin.payload.base.type.PayloadController;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.database.DatabaseDependent;
 import com.jonahseguin.payload.database.DatabaseService;
+import org.bson.BsonDocument;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;

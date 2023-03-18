@@ -8,6 +8,7 @@ package com.jonahseguin.payload.mode.object.store;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.jonahseguin.payload.PayloadPlugin;
+import com.jonahseguin.payload.base.store.PayloadRemoteStore;
 import com.jonahseguin.payload.base.type.PayloadQueryModifier;
 import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.mode.object.PayloadObjectCache;
@@ -17,13 +18,14 @@ import com.mongodb.client.MongoDatabase;
 import dev.morphia.query.Query;
 import org.bson.Document;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<X> {
+public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<X> implements PayloadRemoteStore<String, X> {
 
     private final Set<PayloadQueryModifier<X>> queryModifiers = new HashSet<>();
 
@@ -272,6 +274,21 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
     @Override
     public boolean isDatabase() {
         return true;
+    }
+
+    @NotNull
+    @Override
+    public Collection<X> queryPayloads(Query<X> q) {
+        Preconditions.checkNotNull(q);
+        try {
+            return q.find().toList();
+        } catch (MongoException ex) {
+            getCache().getErrorService().capture(ex, "MongoDB error getting Profiles from MongoDB Layer");
+            return Collections.emptyList();
+        } catch (Exception expected) {
+            getCache().getErrorService().capture(expected, "Error getting Profile from MongoDB Layer");
+            return Collections.emptyList();
+        }
     }
 
 }

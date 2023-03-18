@@ -7,6 +7,8 @@ package com.jonahseguin.payload.base.store;
 
 import com.jonahseguin.payload.base.Service;
 import com.jonahseguin.payload.base.type.Payload;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;

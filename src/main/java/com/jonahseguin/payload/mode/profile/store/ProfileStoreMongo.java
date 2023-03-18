@@ -8,6 +8,7 @@ package com.jonahseguin.payload.mode.profile.store;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.jonahseguin.payload.PayloadPlugin;
+import com.jonahseguin.payload.base.store.PayloadRemoteStore;
 import com.jonahseguin.payload.base.type.PayloadQueryModifier;
 import com.jonahseguin.payload.mode.profile.PayloadProfile;
 import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
@@ -16,13 +17,16 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.query.Query;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheStore<X> {
+public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheStore<X> implements PayloadRemoteStore<UUID, X> {
 
     private final Set<PayloadQueryModifier<X>> queryModifiers = new HashSet<>();
     private boolean running = false;
@@ -97,7 +101,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
         }
     }
 
-    @Override
+
     public boolean save(@Nonnull X payload) {
         Preconditions.checkNotNull(payload);
         payload.interact();
@@ -276,6 +280,25 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
     @Override
     public boolean isDatabase() {
         return true;
+    }
+
+    @NotNull
+    @Override
+    public Collection<X> queryPayloads(Query<X> q) {
+        Preconditions.checkNotNull(q);
+        try {
+            Stream<X> stream = q.find().toList().stream().filter(o -> {
+                o.setLoadingSource(layerName());
+                return true;
+            });
+            return stream.toList();
+        } catch (MongoException ex) {
+            getCache().getErrorService().capture(ex, "MongoDB error getting Profiles from MongoDB Layer");
+            return Collections.emptyList();
+        } catch (Exception expected) {
+            getCache().getErrorService().capture(expected, "Error getting Profile from MongoDB Layer");
+            return Collections.emptyList();
+        }
     }
 
 }
