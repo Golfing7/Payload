@@ -1,5 +1,11 @@
 pipeline {
   agent any
+
+  tools {
+    jdk 'OpenJDK'
+    maven 'MQMaven'
+  }
+
   stages {
     stage('Build') {
       steps {
