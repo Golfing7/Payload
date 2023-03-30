@@ -69,10 +69,8 @@ public class NetworkProfile {
      * Called periodically to 're-update' the last-seen millis.
      */
     public void heartbeat() {
-        if(!online)
-            return;
-
         lastCached = lastSeen = System.currentTimeMillis();
+        online = true;
     }
 
     public void markLoaded(boolean online) {
