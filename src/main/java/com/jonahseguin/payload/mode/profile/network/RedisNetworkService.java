@@ -188,10 +188,6 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
     @Override
     public boolean shutdown() {
         running = false;
-        if(heartbeatMonitorSetup) {
-            heartbeatMonitor.cancel();
-            heartbeatMonitorSetup = false;
-        }
         return true;
     }
 
@@ -209,6 +205,8 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                     networked.ifPresent(profile -> {
                         profile.heartbeat();
                         owner.save(profile);
+
+                        Bukkit.getLogger().info("Updating player %s! Are they online? %s".formatted(player.getName(), profile.isOnline()));
                     });
                 }
             }
