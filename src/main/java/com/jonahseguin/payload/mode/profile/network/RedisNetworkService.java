@@ -206,7 +206,9 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                         profile.heartbeat();
                         owner.save(profile);
 
-                        Bukkit.getLogger().info("Updating player %s! Are they online? %s".formatted(player.getName(), profile.isOnline()));
+                        Bukkit.getLogger().info("Updating player %s! Are they online? %s In Cache %s!".formatted(
+                                player.getName(),
+                                profile.isOnline(), owner.cache.getName()));
                     });
                 }
             }
