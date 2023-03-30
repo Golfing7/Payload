@@ -6,8 +6,10 @@
 package com.jonahseguin.payload.mode.profile.network;
 
 import com.google.common.base.Preconditions;
+import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.mode.profile.PayloadProfile;
+import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
 import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.mongodb.BasicDBObject;
 import org.bukkit.Bukkit;
@@ -23,11 +25,11 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
     /**
      * Used to keep track of if the heartbeat monitor has been set up.
      */
-    private static boolean heartbeatMonitorSetup = false;
+    private boolean heartbeatMonitorSetup = false;
     /**
      * The task in control of doing heartbeats for all network profiles.
      */
-    private static BukkitTask heartbeatMonitor = null;
+    private BukkitTask heartbeatMonitor = null;
 
     private final ProfileCache<X> cache;
     private final DatabaseService database;
@@ -181,13 +183,18 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
     public boolean start() {
         running = true;
         if(!heartbeatMonitorSetup)
-            initHeartbeatMonitor(this);
+            initHeartbeatMonitor();
         return true;
     }
 
     @Override
     public boolean shutdown() {
         running = false;
+        if(heartbeatMonitorSetup) {
+            heartbeatMonitor.cancel();
+            heartbeatMonitor = null;
+            heartbeatMonitorSetup = false;
+        }
         return true;
     }
 
@@ -196,23 +203,19 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
         return running;
     }
 
-    private static void initHeartbeatMonitor(RedisNetworkService<?> owner) {
+    private void initHeartbeatMonitor() {
         heartbeatMonitor = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    Optional<NetworkProfile> networked = owner.cache.getNetworked(player.getUniqueId());
+                    Optional<NetworkProfile> networked = cache.getNetworked(player.getUniqueId());
                     networked.ifPresent(profile -> {
                         profile.heartbeat();
-                        owner.save(profile);
-
-                        Bukkit.getLogger().info("Updating player %s! Are they online? %s In Cache %s!".formatted(
-                                player.getName(),
-                                profile.isOnline(), owner.cache.getName()));
+                        save(profile);
                     });
                 }
             }
-        }.runTaskTimerAsynchronously(owner.cache.getPlugin(), 0, 300L); //Do every 15 seconds to lessen network use.
+        }.runTaskTimerAsynchronously(cache.getPlugin(), 0, 300L); //Do every 15 seconds to lessen network use.
 
         heartbeatMonitorSetup = true;
     }
