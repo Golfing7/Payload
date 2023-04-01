@@ -20,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Jonah on 11/16/2017.
@@ -126,6 +127,8 @@ public class PayloadPlugin extends JavaPlugin {
         lang.load();
         lang.save();
 
+        //Shut down the shared executor.
+        PayloadCache.shutdownSharedExecutor();
         int saved = 0;
         for(PayloadCache cache : PayloadCache.getAllCaches()){
             if(cache.isRunning()){

@@ -513,18 +513,6 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
 
     @Override
     public int saveAll() {
-        //Wait for all async tasks to finish as we don't want save collisions.
-        if(!SHARED_EXECUTOR.isShutdown())
-            SHARED_EXECUTOR.shutdown();
-
-        try{
-            boolean result = SHARED_EXECUTOR.awaitTermination(1000L, TimeUnit.MILLISECONDS);
-            if(!result) {
-                getErrorService().capture("Shared executor did not exit in a timely manner!");
-            }
-        }catch(InterruptedException exc) {
-            getErrorService().capture(exc, "Failed to await for termination on the shared executor!");
-        }
         int failures = 0;
         for (Player p : this.getPlugin().getServer().getOnlinePlayers()) {
             Optional<X> o = this.get(p);

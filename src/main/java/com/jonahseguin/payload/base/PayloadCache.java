@@ -541,4 +541,23 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
             return 0;
         }
     }
+
+    /**
+     * Shuts down, and waits for the termination of, the shared executor.
+     */
+    public static void shutdownSharedExecutor() {
+        //Wait for all async tasks to finish as we don't want save collisions.
+        if(!SHARED_EXECUTOR.isShutdown())
+            SHARED_EXECUTOR.shutdown();
+
+        try{
+            boolean result = SHARED_EXECUTOR.awaitTermination(1000L, TimeUnit.MILLISECONDS);
+            if(!result) {
+                Bukkit.getLogger().warning("Shared executor did not exit in a timely manner!");
+            }
+        }catch(InterruptedException exc) {
+            Bukkit.getLogger().warning("Failed to await for termination on the shared executor!");
+            exc.printStackTrace();
+        }
+    }
 }
