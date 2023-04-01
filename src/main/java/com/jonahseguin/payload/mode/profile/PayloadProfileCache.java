@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -188,7 +189,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
 
     @Override
     public void prepareUpdateAsync(@Nonnull X payload, @Nonnull PayloadCallback<X> callback) {
-        runAsync(() -> prepareUpdate(payload, callback));
+        runAsyncImmediately(() -> prepareUpdate(payload, callback));
     }
 
     @Override
@@ -451,7 +452,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     public void saveAsync(@Nonnull X payload) {
         Preconditions.checkNotNull(payload);
         this.cache(payload);
-        this.runAsync(() -> this.save(payload));
+        this.runAsyncImmediately(() -> this.save(payload));
     }
 
     @Override
@@ -512,6 +513,18 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
 
     @Override
     public int saveAll() {
+        //Wait for all async tasks to finish as we don't want save collisions.
+        if(!SHARED_EXECUTOR.isShutdown())
+            SHARED_EXECUTOR.shutdown();
+
+        try{
+            boolean result = SHARED_EXECUTOR.awaitTermination(1000L, TimeUnit.MILLISECONDS);
+            if(!result) {
+                getErrorService().capture("Shared executor did not exit in a timely manner!");
+            }
+        }catch(InterruptedException exc) {
+            getErrorService().capture(exc, "Failed to await for termination on the shared executor!");
+        }
         int failures = 0;
         for (Player p : this.getPlugin().getServer().getOnlinePlayers()) {
             Optional<X> o = this.get(p);

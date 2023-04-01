@@ -33,10 +33,7 @@ import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
 /**
  * The abstract backbone of all Payload cache systems.
@@ -45,7 +42,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @Getter
 @Singleton
 public abstract class PayloadCache<K, X extends Payload<K>> implements Comparable<PayloadCache>, Cache<K, X> {
-    protected static final ScheduledExecutorService SHARED_EXECUTOR = Executors.newScheduledThreadPool(4);
+    protected static final ExecutorService SHARED_EXECUTOR = Executors.newScheduledThreadPool(4);
 
     private static final Set<PayloadCache> ALL_CACHES = new HashSet<>();
     public static Set<PayloadCache> getAllCaches(){
@@ -363,7 +360,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     @Override
     public void saveAsync(@Nonnull X payload) {
         Preconditions.checkNotNull(payload);
-        runAsync(() -> save(payload));
+        runAsyncImmediately(() -> save(payload));
     }
 
     @Override
@@ -463,7 +460,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     @Override
     public void runAsync(@Nonnull Runnable runnable) {
         if(!api.getPlugin().isEnabled()){
-            Bukkit.getLogger().warning("[%s] - Tried to run async runnable but plugin is disabled! (Most likely harmless)");
+            Bukkit.getLogger().warning("[%s] - Tried to run async runnable but plugin is disabled! (Most likely harmless)".formatted(plugin.getName()));
             return;
         }
 
@@ -475,13 +472,21 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
      * This method is intended to act as a mirror to the above method with one difference.
      * It is backed by an executor pool instead of the bukkit scheduler. This is intentional,
      * as if it uses the bukkit scheduler it's possibly to cause deadlocks in handshakes.
+     * <p></p>
+     * The craft scheduler runs async tasks in 'the next scheduler tick' which must be started synchronously.
+     * This means that if a shutdown procedure happens as follows.
+     * <ol>
+     *     <li>Kick all players</li>
+     *     <li>Shutdown server immediately</li>
+     * </ol>
+     * then the scheduler will have no chance to run async tasks.
      *
      * @param runnable the runnable to run.
      */
     @Override
     public void runAsyncImmediately(@NotNull Runnable runnable) {
         if(!api.getPlugin().isEnabled()) {
-            Bukkit.getLogger().warning("[%s] - Tried to run async runnable but plugin is disabled! (Most likely harmless)");
+            Bukkit.getLogger().warning("[%s] - Tried to run async runnable but plugin is disabled! (Most likely harmless)".formatted(plugin.getName()));
             return;
         }
 

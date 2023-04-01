@@ -106,7 +106,7 @@ public class ProfileUpdater<X extends PayloadProfile> implements Service {
             Preconditions.checkNotNull(sourceServerString, "Source Server cannot be null in ProfileUpdater for receiveRequestSave");
             Preconditions.checkNotNull(identifierString, "Payload Identifier cannot be null in ProfileUpdater for receiveRequestSave");
             UUID uuid = cache.keyFromString(identifierString);
-            cache.runAsync(() -> {
+            cache.runAsyncImmediately(() -> {
                 cache.getFromCache(uuid).ifPresent(cache::save);
                 replyOk(sourceServerString, identifierString);
             });
@@ -123,7 +123,7 @@ public class ProfileUpdater<X extends PayloadProfile> implements Service {
                 PayloadCallback<X> callback = waitingReply.get(identifierString);
                 waitingReply.remove(identifierString);
                 UUID uuid = cache.keyFromString(identifierString);
-                cache.runAsync(() -> {
+                cache.runAsyncImmediately(() -> {
                     X payload = cache.getFromDatabase(uuid).orElse(null);
                     if (payload != null) {
                         callback.callback(payload);
@@ -148,7 +148,7 @@ public class ProfileUpdater<X extends PayloadProfile> implements Service {
             document.append(KEY_MODE, MODE_OK);
             document.append(KEY_IDENTIFIER, identifierString);
             final String json = document.toJson();
-            cache.runAsync(() -> database.getRedis().async().publish(channel, json));
+            cache.runAsyncImmediately(() -> database.getRedis().async().publish(channel, json));
             cache.getErrorService().debug("Replied OK for save request for Payload: '" + identifierString + "' from server: '" + sourceServerString + "'");
         } catch (Exception ex) {
             cache.getErrorService().capture(ex, "Error with sending OK reply in ProfileUpdater to server: '" + sourceServerString + "' for Payload with identifier: '" + identifierString + "'");
@@ -167,7 +167,7 @@ public class ProfileUpdater<X extends PayloadProfile> implements Service {
             document.append(KEY_TARGET_SERVER, targetServerName);
             final String json = document.toJson();
             waitingReply.put(payload.getIdentifier().toString(), callback);
-            cache.runAsync(() -> database.getRedis().async().publish(channel, json));
+            cache.runAsyncImmediately(() -> database.getRedis().async().publish(channel, json));
             cache.getErrorService().debug("Requested save for Payload '" + payload.getIdentifier().toString() + "' from server: '" + targetServerName + "'");
             return true;
         } catch (Exception ex) {

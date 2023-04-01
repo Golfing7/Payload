@@ -155,7 +155,7 @@ public class ProfileListener implements Listener {
 
                             // Not switching servers (no incoming handshake) -- we can assume they are actually
                             // Logging out, and not switching servers
-                            cache.runAsync(() -> {
+                            cache.runAsyncImmediately(() -> {
                                 cache.save(profile);
                                 cache.controller(event.getPlayer().getUniqueId()).uncache(profile, false);
                                 cache.removeController(player.getUniqueId());

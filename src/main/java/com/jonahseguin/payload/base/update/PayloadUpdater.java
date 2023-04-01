@@ -101,7 +101,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
                         }
 
                         if (cache.isCached(identifier) || force) {
-                            cache.runAsync(() -> cache.getFromDatabase(identifier).ifPresent(payload -> {
+                            cache.runAsyncImmediately(() -> cache.getFromDatabase(identifier).ifPresent(payload -> {
                                 cache.cache(payload);
                                 payload.onReceiveUpdate();
                             }));
@@ -126,7 +126,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
             document.append(KEY_FORCE_LOAD, true);
             document.append(KEY_IS_DELETE, true);
             final String json = document.toJson();
-            cache.runAsync(() -> database.getRedis().async().publish(channel, json));
+            cache.runAsyncImmediately(() -> database.getRedis().async().publish(channel, json));
             return true;
         } catch (Exception ex) {
             cache.getErrorService().capture(ex, "Failed to push delete from PayloadUpdater for Payload: " + cache.keyToString(payload.getIdentifier()));
@@ -147,7 +147,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
             document.append(KEY_FORCE_LOAD, force);
             document.append(KEY_IS_DELETE, false);
             final String json = document.toJson();
-            cache.runAsync(() -> database.getRedis().async().publish(channel, json));
+            cache.runAsyncImmediately(() -> database.getRedis().async().publish(channel, json));
             return true;
         } catch (Exception ex) {
             cache.getErrorService().capture(ex, "Failed to push update from PayloadUpdater for Payload: " + cache.keyToString(payload.getIdentifier()));

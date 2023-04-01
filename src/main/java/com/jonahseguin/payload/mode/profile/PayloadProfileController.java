@@ -169,7 +169,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
 
                     if (networkProfile != null) {
                         networkProfile.markLoaded(login);
-                        cache.runAsync(() -> cache.getNetworkService().save(networkProfile));
+                        cache.runAsyncImmediately(() -> cache.getNetworkService().save(networkProfile));
                     }
 
                     // Update their login ip
@@ -301,7 +301,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
 
                 networkProfile.markLoaded(true);
                 NetworkProfile finalNetworkProfile = networkProfile;
-                cache.runAsync(() -> cache.getNetworkService().save(finalNetworkProfile));
+                cache.runAsyncImmediately(() -> cache.getNetworkService().save(finalNetworkProfile));
             }
         }
         return Optional.ofNullable(payload);
