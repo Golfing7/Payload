@@ -57,6 +57,9 @@ public class DatabaseErrorService implements ErrorService {
 
     @Override
     public void debug(@Nonnull String msg) {
+        if(!PayloadPlugin.getPlugin().isDebug())
+            return;
+
         plugin.getLogger().info(getMsg(msg, true));
     }
 

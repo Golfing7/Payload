@@ -5,6 +5,7 @@
 
 package com.jonahseguin.payload.base.error;
 
+import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.Cache;
 
 import javax.annotation.Nonnull;
@@ -50,6 +51,9 @@ public class CacheErrorService implements ErrorService {
 
     @Override
     public void debug(@Nonnull String msg) {
+        if(!PayloadPlugin.getPlugin().isDebug())
+            return;
+
         cache.getPlugin().getLogger().info("[Debug]" + getMsg(msg));
     }
 }
