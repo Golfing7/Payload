@@ -9,6 +9,7 @@ import com.google.inject.Inject;
 import com.jonahseguin.payload.PayloadMode;
 import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.type.Payload;
+import com.jonahseguin.payload.mode.profile.listener.ProfileListener;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.util.MsgBuilder;
 import com.jonahseguin.payload.server.ServerPublisher;
@@ -18,12 +19,16 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.title.Title;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.apache.commons.lang3.Validate;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -184,6 +189,7 @@ public abstract class PayloadProfile implements Payload<UUID> {
         return this.getUniqueId();
     }
 
+    @SuppressWarnings("deprecation")
     public void sendMessage(String msg) {
         Player player = getPlayer();
         if (player != null) {
@@ -192,7 +198,8 @@ public abstract class PayloadProfile implements Payload<UUID> {
         }
 
         Document data = new Document();
-        data.put("action", "MESSAGE_PLAYER");
+        data.put("action", ProfileListener.ProfileAction.MESSAGE_PLAYER.name());
+        data.put("chat-type", ChatMessageType.CHAT.name());
         data.put("message", msg);
         data.put("isComponent", false);
 
@@ -201,6 +208,7 @@ public abstract class PayloadProfile implements Payload<UUID> {
         publisher.publishPlayerEvent(getUUID(), true, data);
     }
 
+    @SuppressWarnings("deprecation")
     public void sendMessage(Component component) {
         Player player = getPlayer();
         if (player != null) {
@@ -209,9 +217,105 @@ public abstract class PayloadProfile implements Payload<UUID> {
         }
 
         Document data = new Document();
-        data.put("action", "MESSAGE_PLAYER");
+        data.put("action", ProfileListener.ProfileAction.MESSAGE_PLAYER.name());
+        data.put("chat-type", ChatMessageType.CHAT.name());
         data.put("message", GsonComponentSerializer.gson().serialize(component));
         data.put("isComponent", true);
+
+        ServerService serverService = this.getCache().getDatabase().getServerService();
+        ServerPublisher publisher = serverService.getPublisher();
+        publisher.publishPlayerEvent(getUUID(), true, data);
+    }
+
+    /**
+     * Sends an action bar component to this player, wherever they are located.
+     *
+     * @param component the component.
+     */
+    @SuppressWarnings("deprecation")
+    public void sendActionBar(Component component) {
+        Player player = getPlayer();
+        if(player != null) {
+            player.sendActionBar(component);
+            return;
+        }
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ProfileAction.MESSAGE_PLAYER.name());
+        data.put("chat-type", ChatMessageType.ACTION_BAR.name());
+        data.put("message", GsonComponentSerializer.gson().serialize(component));
+        data.put("isComponent", true);
+
+        ServerService serverService = this.getCache().getDatabase().getServerService();
+        ServerPublisher publisher = serverService.getPublisher();
+        publisher.publishPlayerEvent(getUUID(), true, data);
+    }
+
+    /**
+     * Sends a sound to this player at the player's location if they're online.
+     *
+     * @param sound the sound to play.
+     * @param volume the volume.
+     * @param pitch the pitch.
+     */
+    public void sendSound(Sound sound, float volume, float pitch) {
+        this.sendSound(sound, volume, pitch, null);
+    }
+
+    /**
+     * Sends a sound to the given player. If the soundLocation is null, it will use the player's location.
+     *
+     * @param sound the sound.
+     * @param volume the volume of the sound.
+     * @param pitch the pitch of the sound.
+     * @param soundLocation the location of the sound.
+     */
+    public void sendSound(Sound sound, float volume, float pitch, Location soundLocation) {
+        Player player = getPlayer();
+        if(player != null) {
+            player.playSound(soundLocation == null ? player.getLocation() : soundLocation, sound, volume, pitch);
+            return;
+        }
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ProfileAction.PLAY_SOUND.name());
+        data.put("sound-type", sound.name());
+        data.put("sound-volume", volume);
+        data.put("sound-pitch", pitch);
+
+        if(soundLocation != null) {
+            data.put("sound-location.x", soundLocation.getX());
+            data.put("sound-location.y", soundLocation.getY());
+            data.put("sound-location.z", soundLocation.getZ());
+        }
+
+        ServerService serverService = this.getCache().getDatabase().getServerService();
+        ServerPublisher publisher = serverService.getPublisher();
+        publisher.publishPlayerEvent(getUUID(), true, data);
+    }
+
+    /**
+     * Sends the given title to the player.
+     *
+     * @param title the title.
+     */
+    public void sendTitle(Title title) {
+        Player player = getPlayer();
+        if(player != null) {
+            player.showTitle(title);
+            return;
+        }
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ProfileAction.SHOW_TITLE.name());
+        data.put("title", GsonComponentSerializer.gson().serialize(title.title()));
+        data.put("subtitle", GsonComponentSerializer.gson().serialize(title.subtitle()));
+        Title.Times times = title.times();
+        if(times != null) {
+            data.put("times.fade-in", times.fadeIn().toMillis());
+            data.put("times.fade-out", times.fadeOut().toMillis());
+            data.put("times.stay", times.stay().toMillis());
+        }
 
         ServerService serverService = this.getCache().getDatabase().getServerService();
         ServerPublisher publisher = serverService.getPublisher();

@@ -8,6 +8,7 @@ package com.jonahseguin.payload.mode.profile.listener;
 import com.google.inject.Inject;
 import com.jonahseguin.payload.PayloadAPI;
 import com.jonahseguin.payload.PayloadMode;
+import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.Cache;
 import com.jonahseguin.payload.mode.profile.PayloadProfile;
 import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
@@ -18,9 +19,15 @@ import com.jonahseguin.payload.mode.profile.event.PayloadProfileSwitchServersEve
 import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
 import com.jonahseguin.payload.server.event.PlayerChangeServerEvent;
 import com.jonahseguin.payload.server.event.PlayerLeaveNetworkEvent;
+import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.title.Title;
+import net.md_5.bungee.api.ChatMessageType;
 import org.bson.Document;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -29,11 +36,101 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class ProfileListener implements Listener {
+
+    /**
+     * An enumeration of all valid profile actions.
+     */
+    @AllArgsConstructor
+    public enum ProfileAction {
+        @SuppressWarnings("deprecation")
+        MESSAGE_PLAYER((player, data) -> {
+            String rawMessage = data.getString("message");
+            if (rawMessage == null) {
+                return;
+            }
+
+            ChatMessageType messageType;
+            try{
+                messageType = ChatMessageType.valueOf(data.getString("chat-type"));
+            }catch(IllegalArgumentException exc) {
+                Bukkit.getLogger().warning("[%s] - Chat message type %s not defined!".formatted(PayloadPlugin.getPlugin().getName(), data.getString("chat-type")));
+                return;
+            }
+
+            //Check if we're receiving a component or not.
+            boolean isComponent = data.getBoolean("isComponent", false);
+            if (isComponent) {
+                Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
+                switch (messageType) {
+                    case CHAT, SYSTEM -> player.sendMessage(component);
+                    case ACTION_BAR -> player.sendActionBar(component);
+                }
+                return;
+            }
+
+            switch (messageType) {
+                case CHAT, SYSTEM -> player.sendMessage(rawMessage);
+                case ACTION_BAR -> player.sendActionBar(rawMessage);
+            }
+        }),
+        PLAY_SOUND((player, data) -> {
+            Sound sound;
+            try{
+                sound = Sound.valueOf(data.getString("sound-type"));
+            }catch(IllegalArgumentException exc) {
+                Bukkit.getLogger().warning("[%s] - Sound type %s not defined!".formatted(PayloadPlugin.getPlugin().getName(), data.getString("sound-type")));
+                return;
+            }
+
+            float volume = data.getDouble("sound-volume").floatValue();
+            float pitch = data.getDouble("sound-pitch").floatValue();
+
+            //Get the sound location.
+            Location location;
+            if(data.containsKey("sound-location")) {
+                location = new Location(player.getWorld(),
+                        data.getDouble("sound-location.x"),
+                        data.getDouble("sound-location.y"),
+                        data.getDouble("sound-location.z"));
+            } else {
+                location = player.getLocation();
+            }
+
+            player.playSound(location, sound, volume, pitch);
+        }),
+        SHOW_TITLE((player, data) -> {
+            Component title = GsonComponentSerializer.gson().deserialize(data.getString("title"));
+            Component subtitle = GsonComponentSerializer.gson().deserialize(data.getString("subtitle"));
+
+            //Build the title from the given information.
+            Title realTitle;
+            if(data.containsKey("times")) {
+                Duration fadeIn = Duration.ofMillis(data.getLong("times.fade-in"));
+                Duration fadeOut = Duration.ofMillis(data.getLong("times.fade-out"));
+                Duration stay = Duration.ofMillis(data.getLong("times.stay"));
+
+                realTitle = Title.title(title, subtitle, Title.Times.of(fadeIn, stay, fadeOut));
+            } else {
+                realTitle = Title.title(title, subtitle);
+            }
+
+            player.showTitle(realTitle);
+        }),
+        ;
+
+        /**
+         * The handler for the document.
+         */
+        final BiConsumer<Player, Document> documentConsumer;
+    }
 
     private final PayloadAPI api;
 
@@ -45,7 +142,7 @@ public class ProfileListener implements Listener {
     @EventHandler
     public void onPayloadPlayerEvent(PayloadPlayerEvent event) {
         Document data = event.getData();
-        if (data == null || !data.containsKey("action") || !data.getString("action").equalsIgnoreCase("MESSAGE_PLAYER")) {
+        if (data == null || !data.containsKey("action")) {
             return;
         }
 
@@ -54,19 +151,15 @@ public class ProfileListener implements Listener {
             return;
         }
 
-        String rawMessage = data.getString("message");
-        if (rawMessage == null) {
+        ProfileAction action;
+        try{
+            action = ProfileAction.valueOf(data.getString("action"));
+        }catch(IllegalArgumentException exc) {
+            Bukkit.getLogger().warning("[%s] - Action %s not defined as a ProfileAction!".formatted(api.getPlugin().getName(), data.getString("action")));
             return;
         }
 
-        boolean isComponent = data.getBoolean("isComponent", false);
-        if (isComponent) {
-            Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
-            player.sendMessage(component);
-            return;
-        }
-
-        player.sendMessage(rawMessage);
+        action.documentConsumer.accept(player, data);
     }
 
     @EventHandler(priority = EventPriority.LOW)
