@@ -95,7 +95,7 @@ public class ProfileListener implements Listener {
 
             //Get the sound location.
             Location location;
-            if(data.containsKey("sound-location")) {
+            if(data.containsKey("sound-location.x")) {
                 location = new Location(player.getWorld(),
                         data.getDouble("sound-location.x"),
                         data.getDouble("sound-location.y"),
