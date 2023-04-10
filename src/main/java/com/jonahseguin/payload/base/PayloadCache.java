@@ -220,6 +220,11 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
         return getLocalStore().getAll().size();
     }
 
+    @Override
+    public long cacheSize() {
+        return getDatabaseStore().size();
+    }
+
     /**
      * Get the name of this cache (set by the end user, should be unique)
      * A {@link com.jonahseguin.payload.base.exception.DuplicateCacheException} error will be thrown if another cache

@@ -146,6 +146,13 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
 
     int cachedObjectCount();
 
+    /**
+     * Gets the total amount of objects in this cache.
+     *
+     * @return the amount of objects.
+     */
+    long cacheSize();
+
     @Nonnull
     PayloadController<X> controller(@Nonnull K key);
 
