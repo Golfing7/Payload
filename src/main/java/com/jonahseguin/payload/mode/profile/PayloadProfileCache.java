@@ -361,7 +361,11 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     public void broadcast(@NotNull Component text) {
         Preconditions.checkNotNull(text);
 
+        Document data = new Document();
+        data.put("action", ProfileListener.ServerAction.BROADCAST.name());
+        data.put("message", GsonComponentSerializer.gson().serialize(text));
 
+        getServerService().getPublisher().publishServerEvent(null, data);
     }
 
     @Override
