@@ -129,7 +129,7 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
             controller.setHandshakeComplete(true);
             controller.setHandshakeTimedOut(false);
             synchronized (controller) {
-                controller.notify();
+                controller.notifyAll();
             }
         }
     }
