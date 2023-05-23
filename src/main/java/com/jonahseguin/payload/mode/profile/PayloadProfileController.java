@@ -336,6 +336,8 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         if (Bukkit.isPrimaryThread()) {
             //Handshaking is exceptionally dangerous on the main thread. It should be avoided at all costs.
             cache.getErrorService().capture(new Throwable(), "called handshake() on main thread. This is highly discouraged and WILL cause major slowdown!");
+        } else {
+            cache.getErrorService().capture(new Throwable());
         }
         while (!handshakeComplete && ((System.currentTimeMillis() - handshakeRequestStartTime) / 1000) < cache.getSettings().getHandshakeTimeoutSeconds()) {
             try {
