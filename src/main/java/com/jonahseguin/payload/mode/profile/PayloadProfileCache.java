@@ -16,6 +16,7 @@ import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.uuid.UUIDService;
 import com.jonahseguin.payload.mode.profile.handshake.ProfileHandshakeService;
+import com.jonahseguin.payload.mode.profile.listener.ProfileListener;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.network.NetworkService;
 import com.jonahseguin.payload.mode.profile.network.RedisNetworkService;
@@ -25,6 +26,9 @@ import com.jonahseguin.payload.mode.profile.store.ProfileStoreMongo;
 import com.jonahseguin.payload.mode.profile.update.ProfileUpdater;
 import com.jonahseguin.payload.server.PayloadServer;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.md_5.bungee.api.ChatMessageType;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
@@ -336,6 +340,28 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
     public Collection<UUID> getOnlineInstancesKeys() {
         return this.networkService.getOnline().stream()
                 .map(NetworkProfile::getUuidID).collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void sendMessage(@NotNull UUID playerUUID, @NotNull Component text) {
+        Preconditions.checkNotNull(playerUUID);
+        Preconditions.checkNotNull(text);
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ProfileAction.MESSAGE_PLAYER.name());
+        data.put("chat-type", ChatMessageType.CHAT.name());
+        data.put("message", GsonComponentSerializer.gson().serialize(text));
+        data.put("isComponent", true);
+
+        getServerService().getPublisher().publishPlayerEvent(playerUUID, true, data);
+    }
+
+    @Override
+    public void broadcast(@NotNull Component text) {
+        Preconditions.checkNotNull(text);
+
+
     }
 
     @Override

@@ -17,6 +17,7 @@ import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileLogoutEvent;
 import com.jonahseguin.payload.mode.profile.event.PayloadProfileSwitchServersEvent;
 import com.jonahseguin.payload.server.event.PayloadPlayerEvent;
+import com.jonahseguin.payload.server.event.PayloadServerEvent;
 import com.jonahseguin.payload.server.event.PlayerChangeServerEvent;
 import com.jonahseguin.payload.server.event.PlayerLeaveNetworkEvent;
 import lombok.AllArgsConstructor;
@@ -132,6 +133,25 @@ public class ProfileListener implements Listener {
         final BiConsumer<Player, Document> documentConsumer;
     }
 
+    /**
+     * An enumeration of all server actions.
+     */
+    @AllArgsConstructor
+    public enum ServerAction {
+        BROADCAST(data -> {
+            String rawMessage = data.getString("message");
+            if (rawMessage == null) {
+                return;
+            }
+
+            Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
+            Bukkit.broadcast(component);
+        }),
+        ;
+
+        final Consumer<Document> documentConsumer;
+    }
+
     private final PayloadAPI api;
 
     @Inject
@@ -155,11 +175,27 @@ public class ProfileListener implements Listener {
         try{
             action = ProfileAction.valueOf(data.getString("action"));
         }catch(IllegalArgumentException exc) {
-            Bukkit.getLogger().warning("[%s] - Action %s not defined as a ProfileAction!".formatted(api.getPlugin().getName(), data.getString("action")));
             return;
         }
 
         action.documentConsumer.accept(player, data);
+    }
+
+    @EventHandler
+    public void onPayloadServerEvent(PayloadServerEvent event) {
+        Document data = event.getData();
+        if (data == null || !data.containsKey("action")) {
+            return;
+        }
+
+        ServerAction action;
+        try{
+            action = ServerAction.valueOf(data.getString("action"));
+        }catch(IllegalArgumentException exc) {
+            return;
+        }
+
+        action.documentConsumer.accept(data);
     }
 
     @EventHandler(priority = EventPriority.LOW)

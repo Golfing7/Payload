@@ -10,6 +10,7 @@ import com.jonahseguin.payload.base.PayloadCallback;
 import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.network.NetworkService;
 import com.jonahseguin.payload.mode.profile.settings.ProfileCacheSettings;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -48,6 +49,21 @@ public interface ProfileCache<X extends PayloadProfile> extends Cache<UUID, X> {
     Collection<String> getOnlineInstancesNames();
 
     Collection<UUID> getOnlineInstancesKeys();
+
+    /**
+     * Attempts to send a message to the given player. Does not require a handshake.
+     *
+     * @param playerUUID the player UUID.
+     * @param text the message to send.
+     */
+    void sendMessage(@Nonnull UUID playerUUID, @Nonnull Component text);
+
+    /**
+     * Broadcasts a message to all players of this cache.
+     *
+     * @param text the message to send.
+     */
+    void broadcast(@Nonnull Component text);
 
     boolean isCached(@Nonnull String username);
 

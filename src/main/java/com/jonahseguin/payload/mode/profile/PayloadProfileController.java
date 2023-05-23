@@ -47,7 +47,6 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
     private long handshakeRequestStartTime = 0L;
     private boolean handshakeTimedOut = false;
     private boolean handshakeComplete = false;
-    private final Lock handshakeLock = new ReentrantLock();
 
     PayloadProfileController(@Nonnull PayloadProfileCache<X> cache, @Nonnull UUID uuid) {
         Preconditions.checkNotNull(cache);
@@ -334,10 +333,7 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
     }
 
     private void handshake(@Nonnull PayloadServer targetServer) {
-        boolean acquiredLock = handshakeLock.tryLock();
-        if (acquiredLock) { // Only start a handshake if one isn't in progress already, otherwise simply 'join' the handshake.
-            cache.getHandshakeService().handshake(this, targetServer);
-        }
+        cache.getHandshakeService().handshake(this, targetServer);
         if (Bukkit.isPrimaryThread()) {
             //Handshaking is exceptionally dangerous on the main thread. It should be avoided at all costs.
             cache.getErrorService().capture(new Throwable(), "called handshake() on main thread. This is highly discouraged and WILL cause major slowdown!");
@@ -355,9 +351,6 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         if (!handshakeComplete) {
             handshakeTimedOut = true;
         }
-
-        if (acquiredLock)
-            handshakeLock.unlock();
     }
 
 }
