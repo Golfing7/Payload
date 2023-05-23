@@ -125,9 +125,12 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         Preconditions.checkNotNull(packet, "ProfileHandshakePacket cannot be null");
         UUID uuid = packet.getUuid();
         if (uuid != null) {
-            PayloadProfileController<X> controller = cache.controller(uuid);
+            final PayloadProfileController<X> controller = cache.controller(uuid);
             controller.setHandshakeComplete(true);
             controller.setHandshakeTimedOut(false);
+            synchronized (controller) {
+                controller.notify();
+            }
         }
     }
 

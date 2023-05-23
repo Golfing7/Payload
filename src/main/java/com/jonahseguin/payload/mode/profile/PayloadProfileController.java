@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
@@ -244,10 +245,12 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
                 if (server != null && server.isOnline()) {
                     // Handshake
                     cache.getErrorService().debug("Handshaking " + uuid.toString() + " from server " + server.getName());
+                    long timeNow = System.nanoTime();
                     handshake(server);
+                    long timeThen = System.nanoTime();
                     if (handshakeComplete && !handshakeTimedOut) {
                         timeoutAttempts = 0;
-                        cache.getErrorService().debug("Handshake complete for " + uuid.toString() + ", loading from DB");
+                        cache.getErrorService().debug("Handshake complete for " + uuid.toString() + ", loading from DB Took %dms".formatted((timeThen - timeNow) / 1000000L));
                         load(false);
                     } else {
                         // Timed out
@@ -331,7 +334,9 @@ public class PayloadProfileController<X extends PayloadProfile> implements Paylo
         cache.getHandshakeService().handshake(this, targetServer);
         while (!handshakeComplete && ((System.currentTimeMillis() - handshakeRequestStartTime) / 1000) < cache.getSettings().getHandshakeTimeoutSeconds()) {
             try {
-                Thread.sleep(100);
+                synchronized (this) {
+                    this.wait(100L);
+                }
             } catch (InterruptedException ex) {
                 cache.getErrorService().capture(ex, "Interrupted in PayloadProfileController while waiting for handshake for UUID: " + uuid.toString());
                 break;
