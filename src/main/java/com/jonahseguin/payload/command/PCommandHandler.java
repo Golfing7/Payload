@@ -46,6 +46,7 @@ public class PCommandHandler implements CommandExecutor {
         register(injector.getInstance(CmdCacheStores.class));
         register(injector.getInstance(CmdDebug.class));
         register(injector.getInstance(CmdProfile.class));
+        register(injector.getInstance(CmdResetPlayer.class));
         register(injector.getInstance(CmdSaveall.class));
         register(injector.getInstance(CmdServer.class));
         register(injector.getInstance(CmdSetID.class));
