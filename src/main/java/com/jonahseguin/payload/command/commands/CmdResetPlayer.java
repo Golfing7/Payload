@@ -53,7 +53,7 @@ public class CmdResetPlayer implements PayloadCommand {
 
     @Override
     public String usage() {
-        return "";
+        return "<username>";
     }
 
     @Override
