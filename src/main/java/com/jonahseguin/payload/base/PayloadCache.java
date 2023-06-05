@@ -411,6 +411,13 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     @Override
     public void delete(@Nonnull X payload) {
         Preconditions.checkNotNull(payload);
+        if (mode == PayloadMode.NETWORK_NODE) {
+            try {
+                this.getUpdater().pushDelete(payload);
+            } catch (Exception ignored) {
+            }
+        }
+
         controller(payload.getIdentifier()).forget();
         getLocalStore().remove(payload);
         getDatabaseStore().remove(payload);
