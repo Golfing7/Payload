@@ -21,6 +21,15 @@ public interface PayloadRemoteStore<K, X extends Payload> extends PayloadStore<K
     Collection<X> queryPayloads(Query<X> filter);
 
     /**
+     * Queries all the payloads with the given filter.
+     *
+     * @param criteriaContainer the document criteria.
+     * @return the queried objects.
+     */
+    @Nonnull
+    Collection<X> queryPayloads(CriteriaContainer criteriaContainer);
+
+    /**
      * Creates a query for data on this store.
      *
      * @return the query.

@@ -310,4 +310,12 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
         }
     }
 
+    @NotNull
+    @Override
+    public Collection<X> queryPayloads(CriteriaContainer criteriaContainer) {
+        Query<X> newQuery = createQuery();
+        newQuery.and(criteriaContainer);
+        return newQuery.find().toList();
+    }
+
 }

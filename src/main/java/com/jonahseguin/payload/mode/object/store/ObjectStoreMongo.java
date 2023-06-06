@@ -301,4 +301,11 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         }
     }
 
+    @NotNull
+    @Override
+    public Collection<X> queryPayloads(CriteriaContainer criteriaContainer) {
+        Query<X> newQuery = createQuery();
+        newQuery.and(criteriaContainer);
+        return newQuery.find().toList();
+    }
 }
