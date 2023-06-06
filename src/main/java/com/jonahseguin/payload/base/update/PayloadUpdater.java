@@ -118,20 +118,24 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
         }
     }
 
-    public boolean pushDelete(@Nonnull X payload) {
+    public boolean pushUpdate(@Nonnull K identifier) {
         try {
             final Document document = new Document();
             document.append(KEY_SOURCE_SERVER, database.getServerService().getThisServer().getName());
-            document.append(KEY_IDENTIFIER, cache.keyToString(payload.getIdentifier()));
+            document.append(KEY_IDENTIFIER, cache.keyToString(identifier));
             document.append(KEY_FORCE_LOAD, true);
             document.append(KEY_IS_DELETE, true);
             final String json = document.toJson();
             cache.runAsyncImmediately(() -> database.getRedis().async().publish(channel, json));
             return true;
         } catch (Exception ex) {
-            cache.getErrorService().capture(ex, "Failed to push delete from PayloadUpdater for Payload: " + cache.keyToString(payload.getIdentifier()));
+            cache.getErrorService().capture(ex, "Failed to push delete from PayloadUpdater for Payload: " + cache.keyToString(identifier));
             return false;
         }
+    }
+
+    public boolean pushDelete(@Nonnull X payload) {
+        return pushUpdate(payload.getIdentifier());
     }
 
     public boolean pushUpdate(@Nonnull X payload) {
