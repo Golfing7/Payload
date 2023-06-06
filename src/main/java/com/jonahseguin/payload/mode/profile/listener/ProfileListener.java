@@ -210,7 +210,7 @@ public class ProfileListener implements Listener {
 
         List<Cache> sortedCaches = api.getSortedCachesByDepends();
 
-        sortedCaches.forEach(c -> {
+        for (Cache c : sortedCaches) {
             if (c instanceof ProfileCache) {
                 ProfileCache cache = (ProfileCache) c;
                 PayloadProfileController controller = cache.controller(uniqueId);
@@ -220,8 +220,15 @@ public class ProfileListener implements Listener {
                 if (controller.isDenyJoin()) {
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, controller.getJoinDenyReason());
                 }
+
+                cache.getPlugin().getLogger().info("Async join on player %s for cache %s, handshake %s, timeout %s.".formatted(
+                        event.getName(),
+                        c.getName(),
+                        controller.isHandshakeComplete(),
+                        controller.isHandshakeTimedOut()
+                ));
             }
-        });
+        }
     }
 
     @EventHandler(priority = EventPriority.LOW)
