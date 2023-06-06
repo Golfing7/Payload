@@ -15,6 +15,8 @@ import com.jonahseguin.payload.mode.object.PayloadObjectCache;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import dev.morphia.query.Criteria;
+import dev.morphia.query.CriteriaContainer;
 import dev.morphia.query.Query;
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -254,6 +256,14 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         for (PayloadQueryModifier<X> modifier : this.queryModifiers) {
             modifier.apply(query);
         }
+    }
+
+    @Override
+    public int deleteWhere(@NotNull CriteriaContainer query) {
+        Query<X> newQuery = createQuery();
+        newQuery.and(query);
+        var result = this.cache.getDatabase().getDatastore().delete(newQuery);
+        return result.getN();
     }
 
     public Query<X> createQuery() {

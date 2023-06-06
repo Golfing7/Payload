@@ -15,6 +15,7 @@ import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import dev.morphia.query.CriteriaContainer;
 import dev.morphia.query.Query;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -263,6 +264,14 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
         Query<X> q = cache.getDatabase().getDatastore().createQuery(cache.getPayloadClass());
         applyQueryModifiers(q);
         return q;
+    }
+
+    @Override
+    public int deleteWhere(@NotNull CriteriaContainer criteria) {
+        Query<X> newQuery = createQuery();
+        newQuery.and(criteria);
+        var result = this.cache.getDatabase().getDatastore().delete(newQuery);
+        return result.getN();
     }
 
     public Query<X> getQuery(UUID uniqueId) {
