@@ -118,7 +118,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
         }
     }
 
-    public boolean pushUpdate(@Nonnull K identifier) {
+    public boolean pushDeleteIdentifier(@Nonnull K identifier) {
         try {
             final Document document = new Document();
             document.append(KEY_SOURCE_SERVER, database.getServerService().getThisServer().getName());
@@ -135,7 +135,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
     }
 
     public boolean pushDelete(@Nonnull X payload) {
-        return pushUpdate(payload.getIdentifier());
+        return pushDeleteIdentifier(payload.getIdentifier());
     }
 
     public boolean pushUpdate(@Nonnull X payload) {
