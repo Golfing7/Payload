@@ -13,6 +13,7 @@ import com.google.inject.Singleton;
 import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.base.store.PayloadStore;
+import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.mode.object.settings.ObjectCacheSettings;
 import com.jonahseguin.payload.mode.object.store.ObjectStoreLocal;
@@ -65,14 +66,22 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
 
     private void findIDFieldName(){
         try{
-            PayloadObject object = payloadClass.getConstructor(ObjectCache.class).newInstance(this);
+            PayloadObject object = payloadClass.getConstructor().newInstance();
 
             identifierFieldName = object.identifierFieldName();
         }catch (InvocationTargetException | InstantiationException | NoSuchMethodException | IllegalAccessException e) {
-            Bukkit.getLogger().warning("Unable to find identifier field name for object cache: " + name + "!");
-            e.printStackTrace();
+            try {
+                // Try again with a different constructor.
+                PayloadObject object = payloadClass.getConstructor(ObjectCache.class).newInstance(this);
 
-            identifierFieldName = "identifier";
+                identifierFieldName = object.identifierFieldName();
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException ex) {
+                Bukkit.getLogger().warning("Unable to find identifier field name for object cache: " + name + "!");
+                e.printStackTrace();
+
+                identifierFieldName = "identifier";
+            }
         }
     }
 
