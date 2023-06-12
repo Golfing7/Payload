@@ -65,6 +65,12 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
     }
 
     private void findIDFieldName(){
+        IdField field = payloadClass.getAnnotation(IdField.class);
+        if (field != null) {
+            identifierFieldName = field.value();
+            return;
+        }
+
         try{
             PayloadObject object = payloadClass.getConstructor().newInstance();
 
