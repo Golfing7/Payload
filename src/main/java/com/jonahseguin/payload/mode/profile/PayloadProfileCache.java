@@ -386,7 +386,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         Preconditions.checkNotNull(sound);
 
         Document data = new Document();
-        data.put("action", ProfileListener.ServerAction.BROADCAST_ACTIONBAR.name());
+        data.put("action", ProfileListener.ServerAction.BROADCAST_SOUND.name());
         data.put("sound-type", sound.name());
         data.put("sound-volume", volume);
         data.put("sound-pitch", pitch);
@@ -399,7 +399,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         Preconditions.checkNotNull(title);
 
         Document data = new Document();
-        data.put("action", ProfileListener.ProfileAction.SHOW_TITLE.name());
+        data.put("action", ProfileListener.ServerAction.BROADCAST_TITLE.name());
         data.put("title", GsonComponentSerializer.gson().serialize(title.title()));
         data.put("subtitle", GsonComponentSerializer.gson().serialize(title.subtitle()));
         Title.Times times = title.times();
