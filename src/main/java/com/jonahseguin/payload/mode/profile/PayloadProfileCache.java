@@ -28,10 +28,12 @@ import com.jonahseguin.payload.server.PayloadServer;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatMessageType;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -364,6 +366,48 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         Document data = new Document();
         data.put("action", ProfileListener.ServerAction.BROADCAST.name());
         data.put("message", GsonComponentSerializer.gson().serialize(text));
+
+        getServerService().getPublisher().publishServerEvent(null, data);
+    }
+
+    @Override
+    public void broadcastActionbar(@NotNull Component text) {
+        Preconditions.checkNotNull(text);
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ServerAction.BROADCAST_ACTIONBAR.name());
+        data.put("message", GsonComponentSerializer.gson().serialize(text));
+
+        getServerService().getPublisher().publishServerEvent(null, data);
+    }
+
+    @Override
+    public void broadcastSound(@NotNull Sound sound, float volume, float pitch) {
+        Preconditions.checkNotNull(sound);
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ServerAction.BROADCAST_ACTIONBAR.name());
+        data.put("sound-type", sound.name());
+        data.put("sound-volume", volume);
+        data.put("sound-pitch", pitch);
+
+        getServerService().getPublisher().publishServerEvent(null, data);
+    }
+
+    @Override
+    public void broadcastTitle(@NotNull Title title) {
+        Preconditions.checkNotNull(title);
+
+        Document data = new Document();
+        data.put("action", ProfileListener.ProfileAction.SHOW_TITLE.name());
+        data.put("title", GsonComponentSerializer.gson().serialize(title.title()));
+        data.put("subtitle", GsonComponentSerializer.gson().serialize(title.subtitle()));
+        Title.Times times = title.times();
+        if(times != null) {
+            data.put("times.fade-in", times.fadeIn().toMillis());
+            data.put("times.fade-out", times.fadeOut().toMillis());
+            data.put("times.stay", times.stay().toMillis());
+        }
 
         getServerService().getPublisher().publishServerEvent(null, data);
     }

@@ -147,6 +147,53 @@ public class ProfileListener implements Listener {
             Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
             Bukkit.broadcast(component);
         }),
+        BROADCAST_TITLE(data -> {
+            Component title = GsonComponentSerializer.gson().deserialize(data.getString("title"));
+            Component subtitle = GsonComponentSerializer.gson().deserialize(data.getString("subtitle"));
+
+            //Build the title from the given information.
+            Title realTitle;
+            if(data.containsKey("times")) {
+                Duration fadeIn = Duration.ofMillis(data.getLong("times.fade-in"));
+                Duration fadeOut = Duration.ofMillis(data.getLong("times.fade-out"));
+                Duration stay = Duration.ofMillis(data.getLong("times.stay"));
+
+                realTitle = Title.title(title, subtitle, Title.Times.of(fadeIn, stay, fadeOut));
+            } else {
+                realTitle = Title.title(title, subtitle);
+            }
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.showTitle(realTitle);
+            }
+        }),
+        BROADCAST_SOUND(data -> {
+            Sound sound;
+            try{
+                sound = Sound.valueOf(data.getString("sound-type"));
+            }catch(IllegalArgumentException exc) {
+                Bukkit.getLogger().warning("[%s] - Sound type %s not defined!".formatted(PayloadPlugin.getPlugin().getName(), data.getString("sound-type")));
+                return;
+            }
+
+            float volume = data.getDouble("sound-volume").floatValue();
+            float pitch = data.getDouble("sound-pitch").floatValue();
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.playSound(player.getLocation(), sound, volume, pitch);
+            }
+        }),
+        BROADCAST_ACTIONBAR(data -> {
+            String rawMessage = data.getString("message");
+            if (rawMessage == null) {
+                return;
+            }
+
+            Component component = GsonComponentSerializer.gson().deserialize(rawMessage);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.sendActionBar(component);
+            }
+        }),
         ;
 
         final Consumer<Document> documentConsumer;

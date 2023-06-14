@@ -11,9 +11,13 @@ import com.jonahseguin.payload.mode.profile.network.NetworkProfile;
 import com.jonahseguin.payload.mode.profile.network.NetworkService;
 import com.jonahseguin.payload.mode.profile.settings.ProfileCacheSettings;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,6 +68,29 @@ public interface ProfileCache<X extends PayloadProfile> extends Cache<UUID, X> {
      * @param text the message to send.
      */
     void broadcast(@Nonnull Component text);
+
+    /**
+     * Broadcasts a title to all online players of this cache.
+     *
+     * @param title the title.
+     */
+    void broadcastTitle(@Nonnull Title title);
+
+    /**
+     * Broadcasts a sound to all online players of this cache.
+     *
+     * @param sound the sound.
+     * @param volume the volume of the sound.
+     * @param pitch the pitch of the sound.
+     */
+    void broadcastSound(@Nonnull Sound sound, float volume, float pitch);
+
+    /**
+     * Broadcasts an action bar to all online players of this cache.
+     *
+     * @param text the action bar text.
+     */
+    void broadcastActionbar(@Nonnull Component text);
 
     boolean isCached(@Nonnull String username);
 
