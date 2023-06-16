@@ -82,10 +82,6 @@ public class PayloadPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        Thread.setDefaultUncaughtExceptionHandler((thr, exc) -> {
-            Bukkit.getLogger().warning("Thread %s had exception!".formatted(thr.getName()));
-            exc.printStackTrace();
-        });
         plugin = this;
 
         this.copyResources();
