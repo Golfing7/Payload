@@ -83,7 +83,7 @@ public class PayloadServerService implements Runnable, ServerService {
 
             List<String> eventList = Arrays.stream(ServerEvent.values())
                     .map(ServerEvent::getEvent).toList();
-            reactive.subscribe(eventList.toArray(String[]::new)).subscribe();
+            reactive.subscribe(eventList.stream().map(database::generatePrefixedChannelName).toArray(String[]::new)).subscribe();
 
             reactive.observeChannels()
                     .filter(pm -> !pm.getMessage().equalsIgnoreCase(database.getServerService().getThisServer().getName()))
@@ -252,7 +252,7 @@ public class PayloadServerService implements Runnable, ServerService {
             if (reactive != null) {
                 List<String> eventList = Arrays.stream(ServerEvent.values())
                         .map(ServerEvent::getEvent).toList();
-                reactive.unsubscribe(eventList.toArray(String[]::new));
+                reactive.unsubscribe(eventList.stream().map(database::generatePrefixedChannelName).toArray(String[]::new));
             }
 
             this.publisher.publishQuit(); // Sync.

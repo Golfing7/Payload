@@ -31,6 +31,15 @@ public interface DatabaseService extends Service {
 
     RedisClient getRedisClient();
 
+    /**
+     * Generates a database number prefixed channel name from the given unformatted name.
+     *
+     * @param unformatted the unformatted string.
+     * @return the prefixed channel name.
+     * @see <a href="https://redis.io/docs/manual/pubsub/#database--scoping">Redis Database Scoping</a>
+     */
+    String generatePrefixedChannelName(String unformatted);
+
     StatefulRedisConnection<String, String> getRedis();
 
     StatefulRedisPubSubConnection<String, String> getRedisPubSub();

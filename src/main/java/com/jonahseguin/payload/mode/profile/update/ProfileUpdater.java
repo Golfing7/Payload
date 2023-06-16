@@ -40,7 +40,7 @@ public class ProfileUpdater<X extends PayloadProfile> implements Service {
     public ProfileUpdater(PayloadProfileCache<X> cache, DatabaseService database) {
         this.cache = cache;
         this.database = database;
-        this.channel = "payload-profile-update-" + cache.getName();
+        this.channel = database.generatePrefixedChannelName("payload-profile-update-" + cache.getName());
     }
 
     @Override

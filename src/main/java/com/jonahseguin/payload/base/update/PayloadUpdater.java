@@ -32,7 +32,7 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
     public PayloadUpdater(Cache<K, X> cache, DatabaseService database) {
         this.cache = cache;
         this.database = database;
-        this.channel = "payload-updater-" + cache.getName();
+        this.channel = database.generatePrefixedChannelName("payload-updater-" + cache.getName());
     }
 
     @Override

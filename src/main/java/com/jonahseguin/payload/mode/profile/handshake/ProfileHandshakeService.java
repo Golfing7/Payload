@@ -36,8 +36,8 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         Preconditions.checkNotNull(cache.getName(), "Cache name cannot be null");
         this.cache = cache;
         this.database = database;
-        this.channelRequest = "payload-profile-handshake-" + cache.getName() + "-request";
-        this.channelReply = "payload-profile-handshake-" + cache.getName() + "-reply";
+        this.channelRequest = database.generatePrefixedChannelName("payload-profile-handshake-" + cache.getName() + "-request");
+        this.channelReply = database.generatePrefixedChannelName("payload-profile-handshake-" + cache.getName() + "-reply");
     }
 
     @Override

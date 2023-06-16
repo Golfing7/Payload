@@ -84,6 +84,11 @@ public class PayloadDatabaseService implements DatabaseService {
     }
 
     @Override
+    public String generatePrefixedChannelName(String unformatted) {
+        return database.getPayloadRedis().getDatabase() + "_" + unformatted;
+    }
+
+    @Override
     public StatefulRedisConnection<String, String> getRedis() {
         return database.getRedis();
     }
