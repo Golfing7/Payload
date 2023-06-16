@@ -93,6 +93,7 @@ public class PayloadServerService implements Runnable, ServerService {
                         if(!PayloadPlugin.getPlugin().isEnabled())
                             return;
 
+                        error.debug("Received message %s over channel %s".formatted(patternMessage.getMessage(), patternMessage.getChannel()));
                         ServerEvent event = ServerEvent.fromChannel(patternMessage.getChannel().substring(patternMessage.getChannel().indexOf("#") + 1)); // Remove DB num
                         if (event != null) {
                             if (event.equals(ServerEvent.JOIN)) {
