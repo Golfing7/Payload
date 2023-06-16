@@ -15,6 +15,7 @@ import com.jonahseguin.payload.base.lang.PLangService;
 import com.jonahseguin.payload.command.PCommandHandler;
 import com.jonahseguin.payload.mode.profile.listener.ProfileListener;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -81,6 +82,10 @@ public class PayloadPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        Thread.setDefaultUncaughtExceptionHandler((thr, exc) -> {
+            Bukkit.getLogger().warning("Thread %s had exception!".formatted(thr.getName()));
+            exc.printStackTrace();
+        });
         plugin = this;
 
         this.copyResources();
