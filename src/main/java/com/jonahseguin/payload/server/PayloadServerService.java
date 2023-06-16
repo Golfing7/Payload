@@ -82,8 +82,8 @@ public class PayloadServerService implements Runnable, ServerService {
             reactive = connection.reactive();
 
             List<String> eventList = Arrays.stream(ServerEvent.values())
-                    .map(ServerEvent::getEvent).toList();
-            reactive.subscribe(eventList.stream().map(database::generatePrefixedChannelName).toArray(String[]::new)).subscribe();
+                    .map(ServerEvent::getEvent).map(database::generatePrefixedChannelName).toList();
+            reactive.subscribe(eventList.toArray(String[]::new)).subscribe();
 
             reactive.observeChannels()
                     .filter(pm -> !pm.getMessage().equalsIgnoreCase(database.getServerService().getThisServer().getName()))
@@ -93,7 +93,7 @@ public class PayloadServerService implements Runnable, ServerService {
                         if(!PayloadPlugin.getPlugin().isEnabled())
                             return;
 
-                        ServerEvent event = ServerEvent.fromChannel(patternMessage.getChannel());
+                        ServerEvent event = ServerEvent.fromChannel(patternMessage.getChannel().substring(patternMessage.getChannel().indexOf("#") + 1)); // Remove DB num
                         if (event != null) {
                             if (event.equals(ServerEvent.JOIN)) {
                                 handleJoin(patternMessage.getMessage());
