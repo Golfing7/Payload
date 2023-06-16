@@ -24,7 +24,7 @@ public class ServerPublisher {
         data.put("mustBeOnline", mustBeOnline);
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.PLAYER_EVENT.getEvent(), data.toJson());
+                payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.PLAYER_EVENT.getEvent()), data.toJson());
             } catch (Exception ex) {
                 payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing PLAYER_EVENT event");
             }
@@ -38,7 +38,7 @@ public class ServerPublisher {
 
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.SERVER_EVENT.getEvent(), data.toJson());
+                payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.SERVER_EVENT.getEvent()), data.toJson());
             }catch(Exception ex) {
                 payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing SERVER_EVENT event");
             }
@@ -56,7 +56,7 @@ public class ServerPublisher {
 
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try{
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.PING_REPLY.getEvent(), pingReply.toJson());
+                payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.PING_REPLY.getEvent()), pingReply.toJson());
             }catch(Exception ex) {
                 payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing PING_REPLY event");
             }
@@ -66,7 +66,7 @@ public class ServerPublisher {
     public void publishPing() {
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.PING.getEvent(), payloadServerService.getThisServer().getName());
+                payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.PING.getEvent()), payloadServerService.getThisServer().getName());
             } catch (Exception ex) {
                 payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing PING event");
             }
@@ -83,7 +83,7 @@ public class ServerPublisher {
         Preconditions.checkNotNull(payloadServerService.getThisServer().getName(), "thisServer#name");
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.JOIN.getEvent(), payloadServerService.getThisServer().getName());
+                payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.JOIN.getEvent()), payloadServerService.getThisServer().getName());
             } catch (Exception ex) {
                 payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing JOIN event");
             }
@@ -92,7 +92,7 @@ public class ServerPublisher {
 
     public void publishQuit() {
         //We must run this sync.
-        payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.QUIT.getEvent(), payloadServerService.getThisServer().getName());
+        payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.QUIT.getEvent()), payloadServerService.getThisServer().getName());
     }
 
     public void publishUpdateName(String oldName, String newName) {
@@ -101,7 +101,7 @@ public class ServerPublisher {
                 Document data = new Document();
                 data.append("old", oldName);
                 data.append("new", newName);
-                payloadServerService.getDatabase().getRedis().async().publish(ServerEvent.UPDATE_NAME.getEvent(), data.toJson());
+                payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.UPDATE_NAME.getEvent()), data.toJson());
             } catch (Exception ex) {
                 payloadServerService.getDatabase().getErrorService().capture(ex, "Payload Server Service: Error publishing UPDATE_NAME event");
             }
