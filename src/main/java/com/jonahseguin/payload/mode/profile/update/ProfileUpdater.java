@@ -34,18 +34,18 @@ public class ProfileUpdater<X extends PayloadProfile> implements Service {
     private final DatabaseService database;
     private RedisPubSubReactiveCommands<String, String> reactive = null;
     private boolean running = false;
-    private final String channel;
     private final ConcurrentMap<String, PayloadCallback<X>> waitingReply = new ConcurrentHashMap<>();
+    private String channel;
 
     public ProfileUpdater(PayloadProfileCache<X> cache, DatabaseService database) {
         this.cache = cache;
         this.database = database;
-        this.channel = database.generatePrefixedChannelName("payload-profile-update-" + cache.getName());
     }
 
     @Override
     public boolean start() {
         Preconditions.checkState(!running, "Payload Updater is already running for cache: " + cache.getName());
+        this.channel = database.generatePrefixedChannelName("payload-profile-update-" + cache.getName());
         boolean sub = subscribe();
         if (!sub) {
             cache.getErrorService().capture("Failed to subscribe to channel " + this.channel + " in PayloadUpdater for cache: " + cache.getName());

@@ -24,8 +24,8 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
 
     private final ProfileCache<X> cache;
     private final DatabaseService database;
-    private final String channelRequest;
-    private final String channelReply;
+    private String channelRequest;
+    private String channelReply;
     private boolean running = false;
     private RedisPubSubReactiveCommands<String, String> reactive = null;
 
@@ -36,13 +36,13 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         Preconditions.checkNotNull(cache.getName(), "Cache name cannot be null");
         this.cache = cache;
         this.database = database;
-        this.channelRequest = database.generatePrefixedChannelName("payload-profile-handshake-" + cache.getName() + "-request");
-        this.channelReply = database.generatePrefixedChannelName("payload-profile-handshake-" + cache.getName() + "-reply");
     }
 
     @Override
     public boolean start() {
         Preconditions.checkState(!running, "Profile Handshake Service is already running!");
+        this.channelRequest = database.generatePrefixedChannelName("payload-profile-handshake-" + cache.getName() + "-request");
+        this.channelReply = database.generatePrefixedChannelName("payload-profile-handshake-" + cache.getName() + "-reply");
         boolean sub = subscribe();
         running = true;
         return sub;

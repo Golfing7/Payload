@@ -27,17 +27,17 @@ public class PayloadUpdater<K, X extends Payload<K>> implements Service {
     private final DatabaseService database;
     private RedisPubSubReactiveCommands<String, String> reactive = null;
     private boolean running = false;
-    private final String channel;
+    private String channel;
 
     public PayloadUpdater(Cache<K, X> cache, DatabaseService database) {
         this.cache = cache;
         this.database = database;
-        this.channel = database.generatePrefixedChannelName("payload-updater-" + cache.getName());
     }
 
     @Override
     public boolean start() {
         Preconditions.checkState(!running, "Payload Updater is already running for cache: " + cache.getName());
+        this.channel = database.generatePrefixedChannelName("payload-updater-" + cache.getName());
         boolean sub = subscribe();
         if (!sub) {
             cache.getErrorService().capture("Failed to subscribe to channel " + this.channel + " in PayloadUpdater for cache: " + cache.getName());
