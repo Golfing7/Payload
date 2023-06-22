@@ -112,8 +112,9 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         cache.runAsyncImmediately(() -> { //Use runAsyncImmediately to avoid deadlock.
             if (player != null && player.isOnline()) {
                 cache.getFromCache(player).ifPresent(profile -> {
-                    profile.onHandshakeRequest();
                     profile.setHandshakeStartTimestamp(System.currentTimeMillis());
+                    profile.setHandshakeLogin(packet.isPlayerLogin());
+                    profile.onHandshakeRequest();
                     cache.save(profile);
                 });
             }
@@ -134,8 +135,8 @@ public class ProfileHandshakeService<X extends PayloadProfile> implements Servic
         }
     }
 
-    public void handshake(@Nonnull PayloadProfileController<X> controller, PayloadServer targetServer) {
-        ProfileHandshakePacket packet = new ProfileHandshakePacket(database.getServerService().getThisServer().getName(), controller.getUuid(), targetServer.getName());
+    public void handshake(@Nonnull PayloadProfileController<X> controller, PayloadServer targetServer, boolean login) {
+        ProfileHandshakePacket packet = new ProfileHandshakePacket(database.getServerService().getThisServer().getName(), controller.getUuid(), targetServer.getName(), login);
         String json = packet.toDocument().toJson();
         Preconditions.checkNotNull(json, "JSON cannot be null for handshake in ProfileHandshakeService");
         controller.setHandshakeTimedOut(false);

@@ -64,6 +64,7 @@ public abstract class PayloadProfile implements Payload<UUID> {
     protected transient String loadingSource = null;
     protected transient Player player = null;
     protected transient long handshakeStartTimestamp = 0; // the time when a handshake starts (when another server requests that we save this profile)
+    protected transient boolean handshakeLogin = false; // If the incoming handshake is from the player logging in to a different server.
 
     @Inject
     public PayloadProfile(ProfileCache cache) {
