@@ -8,10 +8,9 @@ package com.jonahseguin.payload.database;
 import com.jonahseguin.payload.base.Service;
 import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.server.ServerService;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
-import dev.morphia.Morphia;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
@@ -22,8 +21,6 @@ import java.util.Set;
 public interface DatabaseService extends Service {
 
     MongoClient getMongoClient();
-
-    Morphia getMorphia();
 
     Datastore getDatastore();
 

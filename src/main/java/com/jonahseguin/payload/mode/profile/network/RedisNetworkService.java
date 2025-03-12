@@ -12,6 +12,13 @@ import com.jonahseguin.payload.mode.profile.PayloadProfile;
 import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
 import com.jonahseguin.payload.mode.profile.ProfileCache;
 import com.mongodb.BasicDBObject;
+import dev.morphia.mapping.codec.writer.DocumentWriter;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentWriter;
+import org.bson.Document;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
+import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -52,7 +59,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                 final String json = database.getRedis().sync().hget(hashKey, keyString);
                 if (json != null && json.length() > 0) {
                     BasicDBObject dbObject = BasicDBObject.parse(json);
-                    NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
+                    NetworkProfile networkProfile = database.getDatastore().getCodecRegistry().get(NetworkProfile.class).decode(dbObject.toBsonDocument().asBsonReader(), DecoderContext.builder().build());
                     return Optional.ofNullable(networkProfile);
                 } else {
                     return Optional.empty();
@@ -74,7 +81,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
         onlinePlayers.forEach((uuid, json) -> {
             if (json != null && json.length() > 0) {
                 BasicDBObject dbObject = BasicDBObject.parse(json);
-                NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
+                NetworkProfile networkProfile = database.getDatastore().getCodecRegistry().get(NetworkProfile.class).decode(dbObject.toBsonDocument().asBsonReader(), DecoderContext.builder().build());
                 if (!networkProfile.isOnline()) {
                     return;
                 }
@@ -96,7 +103,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                 final String json = database.getRedis().sync().hget(hashKey, keyString);
                 if (json != null && json.length() > 0) {
                     BasicDBObject dbObject = BasicDBObject.parse(json);
-                    NetworkProfile networkProfile = database.getMorphia().fromDBObject(database.getDatastore(), NetworkProfile.class, dbObject);
+                    NetworkProfile networkProfile = database.getDatastore().getCodecRegistry().get(NetworkProfile.class).decode(dbObject.toBsonDocument().asBsonReader(), DecoderContext.builder().build());
                     if (networkProfile != null) {
                         networkProfile.setIdentifier(payload.getIdentifier());
                         networkProfile.setName(payload.getUsername());
@@ -146,9 +153,10 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
         final String keyString = cache.keyToString(networkProfile.getIdentifier());
         Preconditions.checkNotNull(hashKey, "Hash key cannot be null");
         Preconditions.checkNotNull(keyString, "Key cannot be null");
-        BasicDBObject object = (BasicDBObject) database.getMorphia().toDBObject(networkProfile);
-        if (object != null) {
-            String json = object.toJson();
+        BsonDocument document = new BsonDocument();
+        database.getDatastore().getCodecRegistry().get(NetworkProfile.class).encode(new BsonDocumentWriter(document), networkProfile, EncoderContext.builder().build());
+        if (!document.isEmpty()) {
+            String json = document.toJson();
             Preconditions.checkNotNull(json, "JSON cannot be null");
             Preconditions.checkNotNull(cache.getServerSpecificName(), "Server specific cache name cannot be null");
             Preconditions.checkNotNull(networkProfile.getIdentifier(), "Payload identifier cannot be null");

@@ -118,7 +118,7 @@ public class ProfileListener implements Listener {
                 Duration fadeOut = Duration.ofMillis(data.getLong("times.fade-out"));
                 Duration stay = Duration.ofMillis(data.getLong("times.stay"));
 
-                realTitle = Title.title(title, subtitle, Title.Times.of(fadeIn, stay, fadeOut));
+                realTitle = Title.title(title, subtitle, Title.Times.times(fadeIn, stay, fadeOut));
             } else {
                 realTitle = Title.title(title, subtitle);
             }
@@ -158,7 +158,7 @@ public class ProfileListener implements Listener {
                 Duration fadeOut = Duration.ofMillis(data.getLong("times.fade-out"));
                 Duration stay = Duration.ofMillis(data.getLong("times.stay"));
 
-                realTitle = Title.title(title, subtitle, Title.Times.of(fadeIn, stay, fadeOut));
+                realTitle = Title.title(title, subtitle, Title.Times.times(fadeIn, stay, fadeOut));
             } else {
                 realTitle = Title.title(title, subtitle);
             }

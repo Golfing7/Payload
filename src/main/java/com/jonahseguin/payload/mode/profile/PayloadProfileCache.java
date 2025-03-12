@@ -85,7 +85,6 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
             success = false;
             errorService.capture("Failed to start MongoDB store for cache: " + name);
         }
-        database.getMorphia().map(NetworkProfile.class);
 
         if (mode.equals(PayloadMode.NETWORK_NODE)) {
             if (!handshakeService.start()) {
@@ -387,7 +386,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
 
         Document data = new Document();
         data.put("action", ProfileListener.ServerAction.BROADCAST_SOUND.name());
-        data.put("sound-type", sound.name());
+        data.put("sound-type", sound.getKey().toString());
         data.put("sound-volume", volume);
         data.put("sound-pitch", pitch);
 

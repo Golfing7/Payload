@@ -15,16 +15,13 @@ import com.jonahseguin.payload.mode.profile.PayloadProfileCache;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import dev.morphia.query.CriteriaContainer;
 import dev.morphia.query.Query;
+import dev.morphia.query.filters.Filters;
 import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheStore<X> implements PayloadRemoteStore<UUID, X> {
@@ -41,8 +38,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
         Preconditions.checkNotNull(key);
         try {
             Query<X> q = getQuery(key);
-            Stream<X> stream = q.find().toList().stream();
-            Optional<X> o = stream.findFirst();
+            Optional<X> o = Optional.ofNullable(q.first());
             o.ifPresent(x -> x.setLoadingSource(layerName()));
             return o;
         } catch (MongoException ex) {
@@ -58,7 +54,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
     public boolean has(@Nonnull UUID uuid) {
         Preconditions.checkNotNull(uuid);
         try {
-            return getQuery(uuid).find().toList().stream().findAny().isPresent();
+            return getQuery(uuid).count() > 0;
         } catch (MongoException ex) {
             getCache().getErrorService().capture(ex, "MongoDB error check if Profile exists in MongoDB Layer: " + uuid.toString());
             return false;
@@ -73,7 +69,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
         Preconditions.checkNotNull(key);
         try {
             Query<X> q = getQuery(key);
-            cache.getDatabase().getDatastore().findAndDelete(q);
+            q.findAndDelete();
         } catch (MongoException ex) {
             getCache().getErrorService().capture(ex, "MongoDB error removing Profile from MongoDB Layer: " + key.toString());
         } catch (Exception expected) {
@@ -85,8 +81,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
         Preconditions.checkNotNull(username);
         try {
             Query<X> q = getQueryForUsername(username);
-            Stream<X> stream = q.find().toList().stream();
-            Optional<X> xp = stream.findFirst();
+            Optional<X> xp = Optional.ofNullable(q.first());
             X x = xp.orElse(null);
             if (x != null) {
                 x.interact();
@@ -141,7 +136,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
     @Override
     @Nonnull
     public Collection<X> getAll() {
-        return createQuery().find().toList();
+        return createQuery().stream().toList();
     }
 
     @Override
@@ -193,7 +188,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
 
                 try{
                     Query<X> q = getQuery(uuid);
-                    q.find().toList();
+                    q.first();
                 }catch(Throwable thr){
                     collection.deleteOne(document);
                     removed++;
@@ -222,7 +217,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
             success = false;
         }
         if (cache.getSettings().isServerSpecific()) {
-            addCriteriaModifier(query -> query.field("payloadId").equalIgnoreCase(cache.getApi().getPayloadID()));
+            addCriteriaModifier(query -> query.filter(Filters.eq("payloadId", cache.getApi().getPayloadID())));
         }
         running = true;
         return success;
@@ -261,28 +256,20 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
     }
 
     public Query<X> createQuery() {
-        Query<X> q = cache.getDatabase().getDatastore().createQuery(cache.getPayloadClass());
+        Query<X> q = cache.getDatabase().getDatastore().find(cache.getPayloadClass());
         applyQueryModifiers(q);
         return q;
     }
 
-    @Override
-    public int deleteWhere(@NotNull CriteriaContainer criteria) {
-        Query<X> newQuery = createQuery();
-        newQuery.and(criteria);
-        var result = this.cache.getDatabase().getDatastore().delete(newQuery);
-        return result.getN();
-    }
-
     public Query<X> getQuery(UUID uniqueId) {
         Query<X> q = createQuery();
-        q.criteria("uniqueId").equalIgnoreCase(uniqueId.toString());
+        q.filter(Filters.eq("uniqueId", uniqueId.toString()));
         return q;
     }
 
     public Query<X> getQueryForUsername(String username) {
         Query<X> q = createQuery();
-        q.criteria("username").equalIgnoreCase(username);
+        q.filter(Filters.eq("username", username));
         return q;
     }
 
@@ -296,7 +283,7 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
     public Collection<X> queryPayloads(Query<X> q) {
         Preconditions.checkNotNull(q);
         try {
-            Stream<X> stream = q.find().toList().stream().filter(o -> {
+            Stream<X> stream = q.stream().filter(o -> {
                 o.setLoadingSource(layerName());
                 return true;
             });
@@ -308,14 +295,6 @@ public class ProfileStoreMongo<X extends PayloadProfile> extends ProfileCacheSto
             getCache().getErrorService().capture(expected, "Error getting Profile from MongoDB Layer");
             return Collections.emptyList();
         }
-    }
-
-    @NotNull
-    @Override
-    public Collection<X> queryPayloads(CriteriaContainer criteriaContainer) {
-        Query<X> newQuery = createQuery();
-        newQuery.and(criteriaContainer);
-        return newQuery.find().toList();
     }
 
 }

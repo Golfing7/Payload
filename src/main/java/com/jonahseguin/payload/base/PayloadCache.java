@@ -312,8 +312,8 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
         if(payload == update)
             return;
 
-        database.getDatastore().getMapper().getMappedClass(payload.getClass()).getPersistenceFields().forEach(mf -> {
-            mf.setFieldValue(payload, mf.getFieldValue(update));
+        database.getDatastore().getMapper().getEntityModel(payload.getClass()).getProperties().forEach(prop -> {
+            prop.setValue(payload, prop.getValue(update));
         });
     }
 

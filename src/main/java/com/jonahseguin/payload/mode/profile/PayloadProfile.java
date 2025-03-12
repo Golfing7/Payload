@@ -280,7 +280,7 @@ public abstract class PayloadProfile implements Payload<UUID> {
 
         Document data = new Document();
         data.put("action", ProfileListener.ProfileAction.PLAY_SOUND.name());
-        data.put("sound-type", sound.name());
+        data.put("sound-type", sound.getKey().toString());
         data.put("sound-volume", volume);
         data.put("sound-pitch", pitch);
 

@@ -74,7 +74,7 @@ public class DatabaseCacheService implements CacheService {
         database.hook(cache);
         api.saveCache(cache);
 
-        database.getMorphia().map(type);
+        database.getDatastore().getMapper().getEntityModel(type);
     }
 
     @Override

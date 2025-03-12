@@ -16,11 +16,10 @@ import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.database.DatabaseState;
 import com.jonahseguin.payload.database.PayloadDatabase;
 import com.jonahseguin.payload.server.ServerService;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
-import dev.morphia.ext.guice.GuiceExtension;
 import dev.morphia.mapping.MapperOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -35,7 +34,6 @@ public class PayloadDatabaseService implements DatabaseService {
 
     private final String name;
     private final ErrorService error;
-    private final Morphia morphia;
     private final PayloadDatabase database;
     private Datastore datastore = null;
 
@@ -43,13 +41,8 @@ public class PayloadDatabaseService implements DatabaseService {
     public PayloadDatabaseService(Injector injector, @Database String name, @Database ErrorService error, PayloadDatabase database) {
         this.name = name;
         this.error = error;
-        this.morphia = new Morphia();
-        this.morphia.getMapper().setOptions(MapperOptions.builder()
-                .storeEmpties(true)
-                .classLoader(JavaPlugin.getProvidingPlugin(this.getClass()).getClass().getClassLoader()).build());
         this.database = database;
 
-        new GuiceExtension(morphia, injector);
         initDatastore();
     }
 
@@ -66,11 +59,6 @@ public class PayloadDatabaseService implements DatabaseService {
     @Override
     public MongoClient getMongoClient() {
         return database.getMongoClient();
-    }
-
-    @Override
-    public Morphia getMorphia() {
-        return morphia;
     }
 
     @Override
@@ -154,8 +142,11 @@ public class PayloadDatabaseService implements DatabaseService {
 
     private void initDatastore() {
         if (datastore == null) {
-            if (morphia != null && database.getMongoClient() != null) {
-                datastore = morphia.createDatastore(database.getMongoClient(), database.getName());
+            if (database.getMongoClient() != null) {
+                datastore = Morphia.createDatastore(database.getMongoClient(), database.getName(), MapperOptions.builder()
+                        .storeEmpties(true)
+                        .classLoader(JavaPlugin.getProvidingPlugin(this.getClass()).getClass().getClassLoader())
+                        .build());
                 datastore.ensureIndexes();
             }
         }

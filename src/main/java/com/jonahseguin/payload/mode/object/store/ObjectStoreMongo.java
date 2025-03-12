@@ -15,9 +15,8 @@ import com.jonahseguin.payload.mode.object.PayloadObjectCache;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import dev.morphia.query.Criteria;
-import dev.morphia.query.CriteriaContainer;
 import dev.morphia.query.Query;
+import dev.morphia.query.filters.Filters;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         Preconditions.checkNotNull(key);
         try {
             Query<X> q = getQuery(key);
-            Stream<X> stream = q.find().toList().stream();
+            Stream<X> stream = q.stream();
             Optional<X> xp = stream.findFirst();
             xp.ifPresent(PayloadObject::interact);
             return xp;
@@ -61,7 +60,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         Preconditions.checkNotNull(key);
         try {
             Query<X> q = getQuery(key);
-            Stream<X> stream = q.find().toList().stream();
+            Stream<X> stream = q.stream();
             Optional<X> xp = stream.findFirst();
             return xp.isPresent();
         } catch (MongoException ex) {
@@ -78,7 +77,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         Preconditions.checkNotNull(key);
         try {
             Query<X> q = getQuery(key);
-            this.cache.getDatabase().getDatastore().delete(q);
+            q.findAndDelete();
         } catch (MongoException ex) {
             this.getCache().getErrorService().capture(ex, "MongoDB error removing Object from MongoDB Layer: " + key);
         } catch (Exception expected) {
@@ -107,7 +106,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         payload.interact();
         try {
             Query<X> q = getQuery(payload.getIdentifier());
-            Stream<X> stream = q.find().toList().stream();
+            Stream<X> stream = q.stream();
             Optional<X> xp = stream.findFirst();
             return xp.isPresent();
         } catch (MongoException ex) {
@@ -183,7 +182,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
 
                 try{
                     Query<X> q = getQuery(identifier);
-                    q.find().toList();
+                    q.first();
                 }catch(Throwable thr){
                     collection.deleteOne(document);
                     removed++;
@@ -213,7 +212,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         this.nullPayload = this.cache.create();
         Preconditions.checkNotNull(nullPayload, "Null payload failed to instantiate");
         if (this.cache.getSettings().isServerSpecific()) {
-            this.addCriteriaModifier(query -> query.field("payloadId").equalIgnoreCase(cache.getApi().getPayloadID()));
+            this.addCriteriaModifier(query -> query.filter(Filters.eq("payloadId", cache.getApi().getPayloadID())));
         }
         return true;
     }
@@ -240,7 +239,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
     @Override
     public Collection<X> getAll() {
         Query<X> q = this.createQuery();
-        Stream<X> stream = q.find().toList().stream();
+        Stream<X> stream = q.stream();
         return stream.collect(Collectors.toSet());
     }
 
@@ -258,16 +257,8 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         }
     }
 
-    @Override
-    public int deleteWhere(@NotNull CriteriaContainer query) {
-        Query<X> newQuery = createQuery();
-        newQuery.and(query);
-        var result = this.cache.getDatabase().getDatastore().delete(newQuery);
-        return result.getN();
-    }
-
     public Query<X> createQuery() {
-        Query<X> q = this.cache.getDatabase().getDatastore().createQuery(this.cache.getPayloadClass());
+        Query<X> q = this.cache.getDatabase().getDatastore().find(this.cache.getPayloadClass());
         this.applyQueryModifiers(q);
         return q;
     }
@@ -277,7 +268,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
         Preconditions.checkNotNull(q, "Query is null");
         Preconditions.checkNotNull(nullPayload, "nullPayload is null");
         Preconditions.checkNotNull(nullPayload.identifierFieldName(), "identifierFieldName() is null for Payload Object: " + this.nullPayload.getClass().getSimpleName());
-        q.criteria(this.nullPayload.identifierFieldName()).equalIgnoreCase(key);
+        q.filter(Filters.eq(this.nullPayload.identifierFieldName(), key));
         return q;
     }
 
@@ -291,7 +282,7 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
     public Collection<X> queryPayloads(Query<X> q) {
         Preconditions.checkNotNull(q);
         try {
-            return q.find().toList();
+            return q.stream().toList();
         } catch (MongoException ex) {
             getCache().getErrorService().capture(ex, "MongoDB error getting Profiles from MongoDB Layer");
             return Collections.emptyList();
@@ -299,13 +290,5 @@ public class ObjectStoreMongo<X extends PayloadObject> extends ObjectCacheStore<
             getCache().getErrorService().capture(expected, "Error getting Profile from MongoDB Layer");
             return Collections.emptyList();
         }
-    }
-
-    @NotNull
-    @Override
-    public Collection<X> queryPayloads(CriteriaContainer criteriaContainer) {
-        Query<X> newQuery = createQuery();
-        newQuery.and(criteriaContainer);
-        return newQuery.find().toList();
     }
 }

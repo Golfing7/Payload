@@ -5,10 +5,13 @@
 name: Payload
 main: com.jonahseguin.payload.PayloadPlugin
 version: ${project.version}
-author: Jonah Seguin
+authors:
+  - Jonah Seguin
+  - Golfing8
+  - Savag3Life
 website: jonahseguin.com & github.com/jonahseguin/Payload
 description: fail-safe asynchronous profile & object caching for spigot servers
-api-version: 1.17
+api-version: 1.21
 
 commands:
   payload:

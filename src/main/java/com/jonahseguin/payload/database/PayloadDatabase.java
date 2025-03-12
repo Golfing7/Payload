@@ -13,7 +13,7 @@ import com.jonahseguin.payload.database.redis.PayloadRedis;
 import com.jonahseguin.payload.database.redis.PayloadRedisMonitor;
 import com.jonahseguin.payload.database.redis.RedisAccess;
 import com.jonahseguin.payload.server.ServerService;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;

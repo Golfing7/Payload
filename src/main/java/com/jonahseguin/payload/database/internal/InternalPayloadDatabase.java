@@ -6,6 +6,7 @@
 package com.jonahseguin.payload.database.internal;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -23,15 +24,13 @@ import com.jonahseguin.payload.database.redis.PayloadRedisMonitor;
 import com.jonahseguin.payload.database.redis.RedisAccess;
 import com.jonahseguin.payload.server.ServerService;
 import com.mongodb.*;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.reactive.ChannelMessage;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -44,10 +43,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
 @Getter
 @Setter
@@ -148,26 +147,25 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
         }
 
         try {
-            MongoClientOptions.Builder optionsBuilder = new MongoClientOptions.Builder()
-                    .addServerMonitorListener(new PayloadMongoMonitor(this));
+            MongoClientSettings.Builder optionsBuilder = MongoClientSettings.builder()
+                    .applyToServerSettings(builder -> builder.addServerMonitorListener(new PayloadMongoMonitor(this)));
 
             MongoClient mongoClient; // Client
             if (payloadMongo.useURI()) {
                 // Using connection URI
-                MongoClientURI uri = new MongoClientURI(payloadMongo.getUri(), optionsBuilder); // Pass options via builder (monitor)
-                mongoClient = new MongoClient(uri);
+                optionsBuilder.applyConnectionString(new ConnectionString(payloadMongo.getUri()));
+                mongoClient = MongoClients.create(optionsBuilder.build());
             } else {
                 // Using other info
                 ServerAddress address = new ServerAddress(payloadMongo.getAddress(), payloadMongo.getPort()); // Our address
+                optionsBuilder.applyToClusterSettings(builder -> builder.hosts(Lists.newArrayList(address)));
                 if (payloadMongo.isAuth()) {
                     // Using auth
                     MongoCredential credential = MongoCredential.createCredential(payloadMongo.getUsername(),
                             payloadMongo.getAuthDatabase(), payloadMongo.getPassword().toCharArray());
-                    mongoClient = new MongoClient(address, credential, optionsBuilder.build());
-                } else {
-                    // No auth
-                    mongoClient = new MongoClient(address, optionsBuilder.build());
+                    optionsBuilder.credential(credential);
                 }
+                mongoClient = MongoClients.create(optionsBuilder.build());
             }
 
             this.mongoClient = mongoClient;
