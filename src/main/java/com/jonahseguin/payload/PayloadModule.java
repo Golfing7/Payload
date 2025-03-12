@@ -15,6 +15,7 @@ import com.jonahseguin.payload.base.lifecycle.LifecycleService;
 import com.jonahseguin.payload.base.lifecycle.PluginLifecycleService;
 import com.jonahseguin.payload.base.uuid.UUIDService;
 import com.jonahseguin.payload.database.DatabaseModule;
+import lombok.Getter;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 

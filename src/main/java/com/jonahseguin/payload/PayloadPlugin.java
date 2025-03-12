@@ -13,6 +13,7 @@ import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.base.PayloadPermission;
 import com.jonahseguin.payload.base.lang.PLangService;
 import com.jonahseguin.payload.command.PCommandHandler;
+import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.mode.profile.listener.ProfileListener;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -95,7 +96,9 @@ public class PayloadPlugin extends JavaPlugin {
 
         this.lang = new PLangService(this);
 
-        injector = Guice.createInjector(Stage.PRODUCTION, PayloadAPI.install(this, "PayloadDatabase"));
+        PayloadModule module = PayloadAPI.install(this, "PayloadDatabase");
+        injector = Guice.createInjector(Stage.PRODUCTION, module);
+        injector.getInstance(DatabaseService.class).start();
 
         commandHandler = new PCommandHandler(this, lang, injector);
 
