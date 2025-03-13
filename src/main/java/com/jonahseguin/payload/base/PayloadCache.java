@@ -218,7 +218,7 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
 
         Query<X> query = getDatabaseStore().createQuery();
         query.filter(filters);
-        return query.stream().toList();
+        return query.stream().map(x -> controller(x.getIdentifier()).get().orElse(null)).filter(Objects::nonNull).toList();
     }
 
     /**
