@@ -15,6 +15,8 @@ import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.error.CacheErrorService;
 import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.base.lang.PLangService;
+import com.jonahseguin.payload.base.store.PayloadRemoteStore;
+import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.task.PayloadAutoSaveTask;
 import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
@@ -22,6 +24,8 @@ import com.jonahseguin.payload.base.update.PayloadUpdater;
 import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.server.ServerService;
 import dev.morphia.annotations.Entity;
+import dev.morphia.query.Query;
+import dev.morphia.query.filters.Filter;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,9 +34,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -208,6 +210,15 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
             errorService.capture("Couldn't pushUpdate for Payload " + keyToString(payload.getIdentifier()) + ": PayloadUpdater is null!");
             return false;
         }
+    }
+
+    @Override
+    public Collection<X> getWhere(@Nonnull Filter... filters) {
+        Preconditions.checkNotNull(filters, "Filters cannot be null");
+
+        Query<X> query = getDatabaseStore().createQuery();
+        query.filter(filters);
+        return query.stream().toList();
     }
 
     /**

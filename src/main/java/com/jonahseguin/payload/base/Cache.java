@@ -11,12 +11,14 @@ import com.jonahseguin.payload.PayloadMode;
 import com.jonahseguin.payload.base.error.ErrorService;
 import com.jonahseguin.payload.base.lang.PLangService;
 import com.jonahseguin.payload.base.settings.CacheSettings;
+import com.jonahseguin.payload.base.store.PayloadRemoteStore;
 import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadController;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.database.DatabaseDependent;
 import com.jonahseguin.payload.database.DatabaseService;
+import dev.morphia.query.filters.Filter;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -31,6 +33,8 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
     boolean pushUpdate(@Nonnull X payload);
 
     boolean pushUpdate(@Nonnull X payload, boolean forceLoad);
+
+    Collection<X> getWhere(@Nonnull Filter... filters);
 
     Optional<X> get(@Nonnull K key);
 
@@ -100,7 +104,7 @@ public interface Cache<K, X extends Payload<K>> extends Service, DatabaseDepende
     PayloadStore<K, X> getLocalStore();
 
     @Nonnull
-    PayloadStore<K, X> getDatabaseStore();
+    PayloadRemoteStore<K, X> getDatabaseStore();
 
     @Nonnull
     String getName();

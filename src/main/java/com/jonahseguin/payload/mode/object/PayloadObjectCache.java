@@ -12,6 +12,7 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.jonahseguin.payload.PayloadPlugin;
 import com.jonahseguin.payload.base.PayloadCache;
+import com.jonahseguin.payload.base.store.PayloadRemoteStore;
 import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
@@ -144,7 +145,7 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
 
     @Nonnull
     @Override
-    public PayloadStore<String, X> getDatabaseStore() {
+    public PayloadRemoteStore<String, X> getDatabaseStore() {
         return mongoStore;
     }
 

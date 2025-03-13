@@ -12,6 +12,7 @@ import com.google.inject.Singleton;
 import com.jonahseguin.payload.PayloadMode;
 import com.jonahseguin.payload.base.PayloadCache;
 import com.jonahseguin.payload.base.PayloadCallback;
+import com.jonahseguin.payload.base.store.PayloadRemoteStore;
 import com.jonahseguin.payload.base.store.PayloadStore;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.uuid.UUIDService;
@@ -235,7 +236,7 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
 
     @Nonnull
     @Override
-    public PayloadStore<UUID, X> getDatabaseStore() {
+    public PayloadRemoteStore<UUID, X> getDatabaseStore() {
         return mongoStore;
     }
 
