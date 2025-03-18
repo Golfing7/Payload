@@ -33,6 +33,10 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.UuidRepresentation;
+import org.bson.codecs.UuidCodec;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -68,6 +72,7 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
     private PayloadMongo payloadMongo = null;
     private MongoClient mongoClient = null;
     private MongoDatabase database = null;
+    private CodecRegistry codecRegistry = null;
 
     // Redis
     private PayloadRedis payloadRedis = null;
@@ -147,7 +152,13 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
         }
 
         try {
+            codecRegistry = CodecRegistries.fromRegistries(
+                    MongoClientSettings.getDefaultCodecRegistry(),
+                    CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD))
+            );
+
             MongoClientSettings.Builder optionsBuilder = MongoClientSettings.builder()
+                    .codecRegistry(codecRegistry)
                     .applyToServerSettings(builder -> builder.addServerMonitorListener(new PayloadMongoMonitor(this)));
 
             MongoClient mongoClient; // Client

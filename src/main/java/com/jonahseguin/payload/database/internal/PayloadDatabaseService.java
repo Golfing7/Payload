@@ -24,10 +24,18 @@ import dev.morphia.mapping.MapperOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import org.bson.UuidRepresentation;
+import org.bson.codecs.Codec;
+import org.bson.codecs.UuidCodec;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.types.Code;
+import org.bukkit.entity.Cod;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
+import java.util.UUID;
 
 @Singleton
 public class PayloadDatabaseService implements DatabaseService {
@@ -73,7 +81,7 @@ public class PayloadDatabaseService implements DatabaseService {
 
     @Override
     public String generatePrefixedChannelName(String unformatted) {
-        return database.getPayloadRedis().getDatabase() + "#" + unformatted;
+        return this.name + "#" + database.getPayloadRedis().getDatabase() + "#" + unformatted;
     }
 
     @Override
@@ -146,6 +154,12 @@ public class PayloadDatabaseService implements DatabaseService {
                 datastore = Morphia.createDatastore(database.getMongoClient(), database.getName(), MapperOptions.builder()
                         .storeEmpties(true)
                         .classLoader(JavaPlugin.getProvidingPlugin(this.getClass()).getClass().getClassLoader())
+                                .codecProvider(new CodecProvider() {
+                                    @Override @SuppressWarnings("unchecked")
+                                    public <T> Codec<T> get(Class<T> aClass, CodecRegistry codecRegistry) {
+                                        return aClass == UUID.class ? (Codec<T>) new UuidCodec(UuidRepresentation.STANDARD) : null;
+                                    }
+                                })
                         .build());
                 datastore.ensureIndexes();
             }

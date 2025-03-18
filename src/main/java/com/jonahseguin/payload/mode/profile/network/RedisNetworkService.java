@@ -60,6 +60,8 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                 if (json != null && json.length() > 0) {
                     BasicDBObject dbObject = BasicDBObject.parse(json);
                     NetworkProfile networkProfile = database.getDatastore().getCodecRegistry().get(NetworkProfile.class).decode(dbObject.toBsonDocument().asBsonReader(), DecoderContext.builder().build());
+                    if (networkProfile != null)
+                        networkProfile.serverService = database.getServerService();
                     return Optional.ofNullable(networkProfile);
                 } else {
                     return Optional.empty();
@@ -82,6 +84,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
             if (json != null && json.length() > 0) {
                 BasicDBObject dbObject = BasicDBObject.parse(json);
                 NetworkProfile networkProfile = database.getDatastore().getCodecRegistry().get(NetworkProfile.class).decode(dbObject.toBsonDocument().asBsonReader(), DecoderContext.builder().build());
+                networkProfile.serverService = database.getServerService();
                 if (!networkProfile.isOnline()) {
                     return;
                 }
@@ -105,6 +108,7 @@ public class RedisNetworkService<X extends PayloadProfile> implements NetworkSer
                     BasicDBObject dbObject = BasicDBObject.parse(json);
                     NetworkProfile networkProfile = database.getDatastore().getCodecRegistry().get(NetworkProfile.class).decode(dbObject.toBsonDocument().asBsonReader(), DecoderContext.builder().build());
                     if (networkProfile != null) {
+                        networkProfile.serverService = database.getServerService();
                         networkProfile.setIdentifier(payload.getIdentifier());
                         networkProfile.setName(payload.getUsername());
                         return Optional.of(networkProfile);

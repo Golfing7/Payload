@@ -91,6 +91,14 @@
                             <pattern>io.netty</pattern>
                             <shadedPattern>shaded.io.netty</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.bson</pattern>
+                            <shadedPattern>shaded.org.bson</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.mongodb</pattern>
+                            <shadedPattern>shaded.com.mongodb</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
             </plugin>

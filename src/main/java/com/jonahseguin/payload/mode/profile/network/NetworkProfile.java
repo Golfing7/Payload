@@ -27,7 +27,7 @@ public class NetworkProfile {
     private ObjectId id = new ObjectId(); // required for morphia mapping
 
     @Transient
-    protected transient final ServerService serverService;
+    protected transient ServerService serverService;
     protected long lastCached = System.currentTimeMillis();
     protected long lastSaved = System.currentTimeMillis();
 
@@ -42,6 +42,8 @@ public class NetworkProfile {
     public NetworkProfile(ServerService serverService) {
         this.serverService = serverService;
     }
+
+    public NetworkProfile() {}
 
     public boolean isOnlineOtherServer() {
         return isOnline() && (lastSeenServer == null || !lastSeenServer.equalsIgnoreCase(serverService.getThisServer().getName()));

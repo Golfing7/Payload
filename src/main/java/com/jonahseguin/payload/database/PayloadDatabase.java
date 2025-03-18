@@ -18,6 +18,7 @@ import com.mongodb.client.MongoDatabase;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Set;
@@ -53,6 +54,8 @@ public interface PayloadDatabase {
     MongoClient getMongoClient();
 
     MongoDatabase getDatabase();
+
+    CodecRegistry getCodecRegistry();
 
     PayloadRedis getPayloadRedis();
 
