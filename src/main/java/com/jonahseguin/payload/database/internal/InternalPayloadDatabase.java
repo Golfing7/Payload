@@ -107,9 +107,15 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
         running = true;
         if (!mongo) {
             payloadPlugin.getLogger().severe("Database " + name + ": Failed to start MongoDB");
+        } else {
+            getState().setMongoConnected(true);
+            getState().setMongoInitConnect(true);
         }
         if (!redis) {
             payloadPlugin.getLogger().severe("Database " + name + ": Failed to start Redis");
+        } else {
+            getState().setRedisConnected(true);
+            getState().setRedisInitConnect(true);
         }
         if (!server) {
             payloadPlugin.getLogger().severe("Database " + name + ": Failed to start Server Service");
