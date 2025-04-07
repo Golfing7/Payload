@@ -47,10 +47,11 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Getter
 @Setter
@@ -107,6 +108,13 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
         running = true;
         if (!mongo) {
             payloadPlugin.getLogger().severe("Database " + name + ": Failed to start MongoDB");
+        } else {
+            // Wait until Mongo connects.
+            int tries = 0;
+            while (!getState().isMongoConnected() && tries < 50) {
+                LockSupport.parkNanos(100000000L);
+                tries++;
+            }
         }
         if (!redis) {
             payloadPlugin.getLogger().severe("Database " + name + ": Failed to start Redis");
@@ -159,7 +167,7 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
 
             MongoClientSettings.Builder optionsBuilder = MongoClientSettings.builder()
                     .codecRegistry(codecRegistry)
-                    .applyToServerSettings(builder -> builder.addServerMonitorListener(new PayloadMongoMonitor(this)));
+                    .applyToServerSettings(builder -> builder.addServerMonitorListener(new PayloadMongoMonitor(this)).heartbeatFrequency(3, TimeUnit.SECONDS));
 
             MongoClient mongoClient; // Client
             if (payloadMongo.useURI()) {
