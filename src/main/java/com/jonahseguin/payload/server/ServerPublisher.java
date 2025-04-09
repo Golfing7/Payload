@@ -22,6 +22,7 @@ public class ServerPublisher {
     public void publishPlayerEvent(UUID playerUUID, boolean mustBeOnline, Document data) {
         data.put("uuid", playerUUID);
         data.put("mustBeOnline", mustBeOnline);
+        payloadServerService.getDatabase().getErrorService().debug("Payload Server Service: Publishing Player Event to " + playerUUID.toString());
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
                 payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.PLAYER_EVENT.getEvent()), data.toJson());
@@ -36,6 +37,7 @@ public class ServerPublisher {
         if(destinationServer != null)
             data.put("destination-server", destinationServer);
 
+        payloadServerService.getDatabase().getErrorService().debug("Payload Server Service: Publishing Server Event to " + destinationServer);
         this.payloadServerService.getPayloadPlugin().getServer().getScheduler().runTaskAsynchronously(payloadServerService.getPayloadPlugin(), () -> {
             try {
                 payloadServerService.getDatabase().getRedis().async().publish(payloadServerService.getDatabase().generatePrefixedChannelName(ServerEvent.SERVER_EVENT.getEvent()), data.toJson());
