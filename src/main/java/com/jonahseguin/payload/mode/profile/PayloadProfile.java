@@ -50,7 +50,7 @@ public abstract class PayloadProfile implements Payload<UUID> {
     protected ObjectId objectId = new ObjectId();
     @Indexed
     protected String username;
-    @Indexed
+    @Indexed(options = @IndexOptions(unique = true))
     protected String uniqueId;
     protected String loginIp = null; // IP the profile logged in with
     protected String payloadId; // The ID of the Payload instance that currently holds this profile
