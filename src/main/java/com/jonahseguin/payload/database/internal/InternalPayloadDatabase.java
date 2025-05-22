@@ -19,6 +19,7 @@ import com.jonahseguin.payload.database.DatabaseState;
 import com.jonahseguin.payload.database.PayloadDatabase;
 import com.jonahseguin.payload.database.codec.ItemStackCodec;
 import com.jonahseguin.payload.database.codec.LocationCodec;
+import com.jonahseguin.payload.database.codec.NamespacedKeyCodec;
 import com.jonahseguin.payload.database.mongo.PayloadMongo;
 import com.jonahseguin.payload.database.mongo.PayloadMongoMonitor;
 import com.jonahseguin.payload.database.redis.PayloadRedis;
@@ -167,7 +168,8 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
                     CodecRegistries.fromCodecs(
                             new UuidCodec(UuidRepresentation.STANDARD),
                             new LocationCodec(),
-                            new ItemStackCodec()
+                            new ItemStackCodec(),
+                            new NamespacedKeyCodec()
                     )
             );
 
