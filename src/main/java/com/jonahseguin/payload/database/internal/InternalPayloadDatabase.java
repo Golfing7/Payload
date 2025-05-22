@@ -17,6 +17,8 @@ import com.jonahseguin.payload.base.exception.runtime.PayloadConfigException;
 import com.jonahseguin.payload.database.DatabaseDependent;
 import com.jonahseguin.payload.database.DatabaseState;
 import com.jonahseguin.payload.database.PayloadDatabase;
+import com.jonahseguin.payload.database.codec.ItemStackCodec;
+import com.jonahseguin.payload.database.codec.LocationCodec;
 import com.jonahseguin.payload.database.mongo.PayloadMongo;
 import com.jonahseguin.payload.database.mongo.PayloadMongoMonitor;
 import com.jonahseguin.payload.database.redis.PayloadRedis;
@@ -162,7 +164,11 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
         try {
             codecRegistry = CodecRegistries.fromRegistries(
                     MongoClientSettings.getDefaultCodecRegistry(),
-                    CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD))
+                    CodecRegistries.fromCodecs(
+                            new UuidCodec(UuidRepresentation.STANDARD),
+                            new LocationCodec(),
+                            new ItemStackCodec()
+                    )
             );
 
             MongoClientSettings.Builder optionsBuilder = MongoClientSettings.builder()
