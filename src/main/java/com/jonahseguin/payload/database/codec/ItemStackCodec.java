@@ -10,19 +10,30 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemStackCodec implements Codec<ItemStack> {
+@SuppressWarnings("rawtypes")
+public class ItemStackCodec implements Codec {
+    private final Class<?> clazz;
+
+    public ItemStackCodec(boolean craft) {
+        try {
+            this.clazz = craft ? ItemStack.class : Class.forName(Bukkit.getServer().getClass().getPackageName() + ".inventory.CraftItemStack");
+        } catch (ClassNotFoundException exc) {
+            throw new RuntimeException("Could not find ItemStack class", exc);
+        }
+    }
+
     @Override
     public ItemStack decode(BsonReader bsonReader, DecoderContext decoderContext) {
         return ItemStack.deserializeBytes(bsonReader.readBinaryData().getData());
     }
 
     @Override
-    public void encode(BsonWriter bsonWriter, ItemStack itemStack, EncoderContext encoderContext) {
-        bsonWriter.writeBinaryData(new BsonBinary(itemStack.serializeAsBytes()));
+    public void encode(BsonWriter bsonWriter, Object itemStack, EncoderContext encoderContext) {
+        bsonWriter.writeBinaryData(new BsonBinary(((ItemStack) itemStack).serializeAsBytes()));
     }
 
     @Override
-    public Class<ItemStack> getEncoderClass() {
-        return ItemStack.class;
+    public Class getEncoderClass() {
+        return clazz;
     }
 }

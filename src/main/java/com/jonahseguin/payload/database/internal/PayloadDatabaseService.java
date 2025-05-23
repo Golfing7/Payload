@@ -15,11 +15,13 @@ import com.jonahseguin.payload.database.DatabaseDependent;
 import com.jonahseguin.payload.database.DatabaseService;
 import com.jonahseguin.payload.database.DatabaseState;
 import com.jonahseguin.payload.database.PayloadDatabase;
+import com.jonahseguin.payload.helper.PayloadLocation;
 import com.jonahseguin.payload.server.ServerService;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.config.ManualMorphiaConfig;
 import dev.morphia.mapping.MapperOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -151,16 +153,13 @@ public class PayloadDatabaseService implements DatabaseService {
     private void initDatastore() {
         if (datastore == null) {
             if (database.getMongoClient() != null) {
-                datastore = Morphia.createDatastore(database.getMongoClient(), database.getName(), MapperOptions.builder()
+                datastore = Morphia.createDatastore(database.getMongoClient(), ManualMorphiaConfig.configure()
+                        .database(database.getName())
+                        .codecProvider(database.getCodecRegistry())
                         .storeEmpties(true)
-                        .classLoader(JavaPlugin.getProvidingPlugin(this.getClass()).getClass().getClassLoader())
-                                .codecProvider(new CodecProvider() {
-                                    @Override @SuppressWarnings("unchecked")
-                                    public <T> Codec<T> get(Class<T> aClass, CodecRegistry codecRegistry) {
-                                        return aClass == UUID.class ? (Codec<T>) new UuidCodec(UuidRepresentation.STANDARD) : null;
-                                    }
-                                })
-                        .build());
+                        .uuidRepresentation(UuidRepresentation.STANDARD)
+                );
+                datastore.getMapper().getEntityModel(PayloadLocation.class);
                 datastore.ensureIndexes();
             }
         }

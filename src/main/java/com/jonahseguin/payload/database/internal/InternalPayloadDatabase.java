@@ -164,17 +164,19 @@ public class InternalPayloadDatabase implements PayloadDatabase, RedisAccess {
 
         try {
             codecRegistry = CodecRegistries.fromRegistries(
-                    MongoClientSettings.getDefaultCodecRegistry(),
                     CodecRegistries.fromCodecs(
                             new UuidCodec(UuidRepresentation.STANDARD),
                             new LocationCodec(),
-                            new ItemStackCodec(),
+                            new ItemStackCodec(false),
+                            new ItemStackCodec(true),
                             new NamespacedKeyCodec()
-                    )
+                    ),
+                    MongoClientSettings.getDefaultCodecRegistry()
             );
 
             MongoClientSettings.Builder optionsBuilder = MongoClientSettings.builder()
                     .codecRegistry(codecRegistry)
+                    .uuidRepresentation(UuidRepresentation.STANDARD)
                     .applyToServerSettings(builder -> builder.addServerMonitorListener(new PayloadMongoMonitor(this)).heartbeatFrequency(3, TimeUnit.SECONDS));
 
             MongoClient mongoClient; // Client
