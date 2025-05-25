@@ -29,7 +29,11 @@ public class ItemStackCodec implements Codec {
 
     @Override
     public void encode(BsonWriter bsonWriter, Object itemStack, EncoderContext encoderContext) {
-        bsonWriter.writeBinaryData(new BsonBinary(((ItemStack) itemStack).serializeAsBytes()));
+        if (((ItemStack) itemStack).isEmpty()) {
+            bsonWriter.writeNull();
+        } else {
+            bsonWriter.writeBinaryData(new BsonBinary(((ItemStack) itemStack).serializeAsBytes()));
+        }
     }
 
     @Override
