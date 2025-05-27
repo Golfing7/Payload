@@ -58,10 +58,11 @@ public class PayloadObjectCache<X extends PayloadObject> extends PayloadCache<St
      * @param name the name.
      * @param payload the payload class.
      */
-    PayloadObjectCache(Injector injector, String name, Class<X> payload) {
+    public PayloadObjectCache(Injector injector, String name, Class<X> payload) {
         super(injector, name, String.class, payload);
-        setupModule();
+        this.instantiator = (inj) -> instantiateByReflection();
 
+        this.setupModule();
         this.findIDFieldName();
     }
 

@@ -65,6 +65,12 @@ public class PayloadProfileCache<X extends PayloadProfile> extends PayloadCache<
         this.setupModule();
     }
 
+    public PayloadProfileCache(Injector injector, String name, Class<X> payload) {
+        super(injector, name, UUID.class, payload);
+        this.instantiator = (inj) -> instantiateByReflection();
+        this.setupModule();
+    }
+
     @Override
     protected void setupModule() {
         super.injectMe();

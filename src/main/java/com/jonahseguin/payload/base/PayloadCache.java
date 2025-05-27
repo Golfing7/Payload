@@ -22,6 +22,8 @@ import com.jonahseguin.payload.base.type.Payload;
 import com.jonahseguin.payload.base.type.PayloadInstantiator;
 import com.jonahseguin.payload.base.update.PayloadUpdater;
 import com.jonahseguin.payload.database.DatabaseService;
+import com.jonahseguin.payload.mode.object.ObjectCache;
+import com.jonahseguin.payload.mode.object.PayloadObject;
 import com.jonahseguin.payload.server.ServerService;
 import dev.morphia.annotations.Entity;
 import dev.morphia.query.Query;
@@ -34,6 +36,10 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -70,6 +76,8 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
     protected PayloadMode mode = PayloadMode.NETWORK_NODE;
     protected boolean running = false;
     protected String entityName;
+    protected MethodHandle noArgsConstructor;
+    protected MethodHandle cacheArgConstructor;
 
     public PayloadCache(Injector injector, PayloadInstantiator<K, X> instantiator, String name, Class<K> key, Class<X> payload) {
         this.injector = injector;
@@ -562,6 +570,32 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
             return 1;
         } else {
             return 0;
+        }
+    }
+
+    /**
+     * Instantiates a payload object by using reflection.
+     *
+     * @return the instantiated object
+     */
+    @SuppressWarnings("unchecked")
+    protected X instantiateByReflection() {
+        try{
+            if (this.noArgsConstructor == null) {
+                this.noArgsConstructor = MethodHandles.lookup().unreflectConstructor(payloadClass.getConstructor());
+            }
+            return (X) noArgsConstructor.invoke();
+        }catch (Throwable e) {
+            try {
+                if (this.cacheArgConstructor == null) {
+                    var constructor = Arrays.stream(payloadClass.getConstructors()).filter(z -> z.getParameterCount() > 0 && Cache.class.isAssignableFrom(z.getParameters()[0].getType())).findFirst().orElseThrow();
+                    this.cacheArgConstructor = MethodHandles.lookup().unreflectConstructor(constructor);
+                }
+                // Try again with a different constructor.
+                return (X) cacheArgConstructor.invoke(this);
+            } catch (Throwable ex) {
+                throw new RuntimeException("Unable to find constructor for cache: " + name + "!");
+            }
         }
     }
 

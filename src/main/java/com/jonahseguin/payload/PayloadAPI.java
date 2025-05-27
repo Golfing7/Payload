@@ -70,6 +70,10 @@ public class PayloadAPI {
         this.caches.putIfAbsent(convertCacheName(cache.getName()), cache);
     }
 
+    public final void removeCache(Cache cache) {
+        this.caches.remove(convertCacheName(cache.getName()), cache);
+    }
+
     public void registerDatabase(PayloadDatabase database) {
         if (!isDatabaseRegistered(database.getName())) {
             this.databases.putIfAbsent(database.getName().toLowerCase(), database);
