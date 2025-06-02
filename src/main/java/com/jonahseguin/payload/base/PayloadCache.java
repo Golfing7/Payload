@@ -145,6 +145,8 @@ public abstract class PayloadCache<K, X extends Payload<K>> implements Comparabl
             success = false;
             errorService.capture("Failed to initialize internally for cache: " + name);
         }
+        // Make sure the entity class is mapped.
+        getDatabase().getDatastore().getMapper().getEntityModel(payloadClass);
         updater = new PayloadUpdater<>(this, database);
         if (getSettings().isEnableUpdater() && mode.equals(PayloadMode.NETWORK_NODE)) {
             if (!updater.start()) {
